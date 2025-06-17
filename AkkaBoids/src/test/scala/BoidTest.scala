@@ -5,7 +5,6 @@ import org.scalatest.matchers.must.Matchers.{must, mustBe}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.matchers.should.Matchers.should
 class BoidTest extends AnyFlatSpec with Matchers:
-  import Boid.{Position, Velocity}
 
   "a position" should "be added correctly" in:
     val p1 = Position(1, 2)

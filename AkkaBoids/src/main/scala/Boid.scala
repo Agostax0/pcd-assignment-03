@@ -1,28 +1,30 @@
 package it.unibo.pcd
 
+case class Position(x: Double, y: Double):
+  private def op(other: Position, op: (Position, Position) => Position): Position = op(this, other)
+  def +(other: Position): Position = op(other, (a, b) => Position(a.x + b.x, a.y + b.y))
+  def -(other: Position): Position = op(other, (a, b) => Position(a.x - b.x, a.y - b.y))
+  def *(scalar: Double): Position = Position(x * scalar, y * scalar)
+  def /(scalar: Double): Position = Position(x / scalar, y / scalar)
+  def distance(other: Position): Double = math.sqrt((other.x - x) * (other.x - x) + (other.y - y) * (other.y - y))
+object Position:
+  def zero: Position = Position(0, 0)
+  def apply(p: (Int, Int)): Position = Position(p._1, p._2)
+
+case class Velocity(x: Double, y: Double):
+  def +(other: Velocity): Velocity = Velocity(x + other.x, y + other.y)
+  def -(other: Velocity): Velocity = Velocity(x - other.x, y - other.y)
+  def abs: Double = math.sqrt(x * x + y * y)
+  def normalized: Velocity = Velocity(x / abs, y / abs)
+  def /(scalar: Double): Position = Position(x / scalar, y / scalar)
+  def *(scalar: Double): Velocity = Velocity(x * scalar, y * scalar)
+object Velocity:
+  def zero: Velocity = Velocity(0, 0)
+  def apply(v: (Int, Int)): Velocity = Velocity(v._1, v._2)
+
 object Boid:
 
-  case class Position(x: Double, y: Double):
-    private def op(other: Position, op: (Position, Position) => Position): Position = op(this, other)
-    def +(other: Position): Position = op(other, (a, b) => Position(a.x + b.x, a.y + b.y))
-    def -(other: Position): Position = op(other, (a, b) => Position(a.x - b.x, a.y - b.y))
-    def *(scalar: Double): Position = Position(x * scalar, y * scalar)
-    def /(scalar: Double): Position = Position(x / scalar, y / scalar)
-    def distance(other: Position): Double = math.sqrt((other.x - x) * (other.x - x) + (other.y - y) * (other.y - y))
-  object Position:
-    def zero: Position = Position(0, 0)
-
-  case class Velocity(x: Double, y: Double):
-    def +(other: Velocity): Velocity = Velocity(x + other.x, y + other.y)
-    def abs: Double = math.sqrt(x * x + y * y)
-    def normalized: Velocity = Velocity(x / abs, y / abs)
-    def /(scalar: Double): Position = Position(x / scalar, y / scalar)
-    def *(scalar: Double): Velocity = Velocity(x * scalar, y * scalar)
-  object Velocity:
-    def zero: Velocity = Velocity(0, 0)
-
   case class Boid(position: Position, velocity: Velocity):
-    def apply(p: Position, v: Velocity): Boid = Boid(p, v)
 
     def update(model: BoidsModel): Boid =
       val sep = separation(model) * model.separationWeight
@@ -51,7 +53,7 @@ object Boid:
 
       Position(newX, newY)
 
-    private def neighbors(implicit model: BoidsModel): List[Boid] =
+    private def neighbors(implicit model: BoidsModel): Seq[Boid] =
       for
         boid <- model.boids
         if boid != this && boid.position.distance(position) < model.perceptionRadius
@@ -80,4 +82,6 @@ object Boid:
         val avgVel = neighbors.map(_._2).foldLeft(Velocity.zero)(_ + _) / neighbors.size
         Velocity(avgVel.x - velocity.x, avgVel.y - velocity.y).normalized
 
-end Boid
+  object Boid:
+    def apply(pos: (Int, Int), vel: (Int, Int)): Boid =
+      Boid(Position(pos), Velocity(vel))
