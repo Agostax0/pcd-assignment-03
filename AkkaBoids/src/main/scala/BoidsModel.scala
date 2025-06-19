@@ -31,7 +31,7 @@ case class BoidsModel(
   def separationWeight_=(weight: Double): BoidsModel =
     copy(separationWeight = weight)
 
-  def alignmentWeight_(weight: Double): BoidsModel =
+  def alignmentWeight_=(weight: Double): BoidsModel =
     copy(alignmentWeight = weight)
 
   def cohesionWeight_=(weight: Double): BoidsModel =
