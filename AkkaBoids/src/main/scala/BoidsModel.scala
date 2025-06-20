@@ -1,9 +1,6 @@
 package it.unibo.pcd
 
 import Boid.Boid
-
-import akka.actor.typed.Behavior
-import akka.actor.typed.scaladsl.Behaviors
 sealed trait BoidsModel:
   val boids: Seq[Boid]
   val separationWeight: Double
@@ -20,6 +17,8 @@ sealed trait BoidsModel:
   val minY: Double = -height / 2
   val maxY: Double = height / 2
 object BoidsModel:
+  def local: LocalBoidsModel = LocalBoidsModel()
+
   case class LocalBoidsModel(
       boids: Seq[Boid] = List.empty,
       separationWeight: Double = 1.0,
