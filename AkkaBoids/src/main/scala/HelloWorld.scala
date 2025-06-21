@@ -14,8 +14,8 @@ object HelloActor:
     message.replyTo ! Greeted(message.whom, context.self)
     Behaviors.same
 
-object HelloWorldAkkaTyped extends App:
-  val system: ActorSystem[HelloActor.Greet] = ActorSystem(HelloActor(), name = "hello-world")
-  system ! HelloActor.Greet("Akka Typed", system.ignoreRef)
-  Thread.sleep(5000)
-  system.terminate()
+//object HelloWorldAkkaTyped extends App:
+//  val system: ActorSystem[HelloActor.Greet] = ActorSystem(HelloActor(), name = "hello-world")
+//  system ! HelloActor.Greet("Akka Typed", system.ignoreRef)
+//  Thread.sleep(5000)
+//  system.terminate()

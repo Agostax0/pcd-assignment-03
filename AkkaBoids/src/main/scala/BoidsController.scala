@@ -8,7 +8,6 @@ import akka.actor.typed.{ActorRef, ActorSystem, Behavior}
 import it.unibo.pcd.{ActorBoidsModel, BoidsModelMessages, BoidsView, BoidsViewMessages}
 import scala.concurrent.duration.DurationInt
 
-
 sealed trait BoidsControllerMessages
 object BoidsControllerMessages:
   case class GetData(boids: Seq[Boid]) extends BoidsControllerMessages
@@ -20,28 +19,29 @@ object BoidsController:
       model: ActorRef[BoidsModelMessages],
       view: ActorRef[BoidsViewMessages],
       isRunning: Boolean = false
-           ): Behavior[BoidsControllerMessages] =
+  ): Behavior[BoidsControllerMessages] =
     Behaviors.setup: context =>
       Behaviors.withTimers: timer =>
         import BoidsControllerMessages.*
         Behaviors.receiveMessage {
-            case GetData(boids) =>
-              view ! BoidsViewMessages.Render(boids)
+          case GetData(boids) =>
+            view ! BoidsViewMessages.Render(boids)
 
-              if(isRunning) then timer.startSingleTimer(
+            if isRunning then
+              timer.startSingleTimer(
                 Start,
                 300.millis
               )
 
-              Behaviors.same
-            case Start =>
-              context.log.info("Start")
-              model ! Step(context.self)
-              apply(model, view, true)
-            case Stop =>
-              apply(model, view, false)
-            case Reset =>
-              model ! BoidsModelMessages.Reset
+            Behaviors.same
+          case Start =>
+            context.log.info("Start")
+            model ! Step(context.self)
+            apply(model, view, true)
+          case Stop =>
+            apply(model, view, false)
+          case Reset =>
+            model ! BoidsModelMessages.Reset
             Behaviors.same
         }
 object Root:
@@ -55,7 +55,7 @@ object Root:
       controller ! Start
       Behaviors.empty
 
-object Main extends App:
+object Prova:
   @main
   def main(): Unit =
     println("start")
