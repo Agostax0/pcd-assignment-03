@@ -7,7 +7,7 @@ import javax.swing.{BorderFactory, JSlider, Timer}
 import javax.swing.Timer
 import java.awt.event.ActionListener
 import java.awt.event.ActionEvent
-
+/*
 class BoidsGUI extends MainFrame:
   title = "Boids Simulation"
   private var isRunning = false
@@ -149,3 +149,4 @@ object BoidsGUI:
   def main(args: Array[String]): Unit =
     val ui = new BoidsGUI
     ui.visible = true
+*/
