@@ -1,22 +1,29 @@
 package it.unibo.pcd
 
 import Boid.Boid
-import BoidsViewMessages.Render
+import BoidsViewMessages.{Render, Reset, Start, Stop, UpdateBoids, UpdateDimensions, UpdateParameters}
 
 import akka.actor.typed.{ActorRef, Behavior, Props}
 import akka.actor.typed.scaladsl.Behaviors
 
 import java.awt.{Color, Dimension, Graphics2D}
 import javax.swing.BorderFactory
+import scala.language.postfixOps
 import scala.swing.*
 import scala.swing.Swing.onEDT
 import scala.swing.event.*
 
 sealed trait BoidsViewMessages
 object BoidsViewMessages:
-  case class Render(boids: Seq[Boid], from: ActorRef[BoidsControllerMessages]) extends BoidsViewMessages
+  case class Render(boids: Seq[Boid]) extends BoidsViewMessages
+  case object Start extends BoidsViewMessages
+  case object Stop extends BoidsViewMessages
+  case object Reset extends BoidsViewMessages
+  case class UpdateParameters(separation: Double, alignment: Double, cohesion: Double) extends BoidsViewMessages
+  case class UpdateBoids(count: Int) extends BoidsViewMessages
+  case class UpdateDimensions(width: Double, height: Double) extends BoidsViewMessages
 
-object ActorBoidsView extends MainFrame:
+object ActorBoidsView:
   import akka.actor.typed.ActorRef
   def apply(
       view: BoidsView = new BoidsView,
@@ -26,20 +33,48 @@ object ActorBoidsView extends MainFrame:
       val controller: ActorRef[BoidsControllerMessages] =
         context.system.systemActorOf(BoidsController(null, null), "controller")
 
-      view.StartStopCallBack = (x: Boolean) =>
-        if x then controller ! BoidsControllerMessages.Start else controller ! BoidsControllerMessages.Stop
-      view.ResetCallBack = () => controller ! BoidsControllerMessages.Reset
-      view.ParametersCallBack =
-        (x: Double, y: Double, z: Double) => controller ! BoidsControllerMessages.UpdateParameters(x, y, z)
-      view.BoidsCallBack = (x: Int) => controller ! BoidsControllerMessages.UpdateNumberOfBoids(x)
-      view.UpdateDimensionsCallBack =
-        (x: Double, y: Double) => controller ! BoidsControllerMessages.UpdateDimensions(x, y)
+      view.StartStopCallBack = (x: Boolean) => context.self ! (if x then Start else Stop)
+      view.ResetCallBack = () => context.self ! Reset
+      view.ParametersCallBack = (x: Double, y: Double, z: Double) => context.self ! UpdateParameters(x, y, z)
+      view.BoidsCallBack = (x: Int) => context.self ! UpdateBoids(x)
+      // view.UpdateDimensionsCallBack = (x: Double, y: Double) => context.self ! UpdateDimensions(x, y)
 
       Behaviors.receiveMessage:
-        case Render(boids, from) =>
+        case Render(boids) =>
           context.log.info("Render")
           view.updateBoids(boids)
           Behaviors.same
+
+        case Start =>
+          context.log.info("StartCallBack")
+          controller ! BoidsControllerMessages.Start
+          Behaviors.same
+
+        case Stop =>
+          context.log.info("StartCallBack")
+          controller ! BoidsControllerMessages.Stop
+          Behaviors.same
+
+        case Reset =>
+          context.log.info("ResetCallBack")
+          controller ! BoidsControllerMessages.Reset
+          Behaviors.same
+
+        case UpdateParameters(separation, alignment, cohesion) =>
+          context.log.info(s"ParametersCallBack: $separation, $alignment, $cohesion")
+          controller ! BoidsControllerMessages.UpdateParameters(separation, alignment, cohesion)
+          Behaviors.same
+
+        case UpdateBoids(count) =>
+          context.log.info(s"BoidsCallBack: $count")
+          controller ! BoidsControllerMessages.UpdateNumberOfBoids(count)
+          Behaviors.same
+
+        case UpdateDimensions(width, height) =>
+          context.log.info(s"UpdateDimensionsCallBack: $width, $height")
+          controller ! BoidsControllerMessages.UpdateDimensions(width, height)
+          Behaviors.same
+
     }
 
 sealed class BoidsView extends MainFrame:

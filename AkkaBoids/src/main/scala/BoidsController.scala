@@ -18,6 +18,7 @@ object BoidsControllerMessages:
   case object Start extends BoidsControllerMessages
   case object Stop extends BoidsControllerMessages
   case object Reset extends BoidsControllerMessages
+
 object BoidsController:
   def apply(
       model: ActorRef[BoidsModelMessages],
@@ -29,9 +30,10 @@ object BoidsController:
         import BoidsControllerMessages.*
         Behaviors.receiveMessage {
           case GetData(boids) =>
-            view ! BoidsViewMessages.Render(boids, context.self)
+            view ! BoidsViewMessages.Render(boids)
             if isRunning then
               timer.startSingleTimer(
+                "updateTimer",
                 Start,
                 300.millis
               )
@@ -39,10 +41,10 @@ object BoidsController:
           case UpdateDimensions(width, height) =>
             model ! BoidsModelMessages.UpdateDimensions(width, height)
             Behaviors.same
-          case BoidsControllerMessages.UpdateNumberOfBoids(n) =>
+          case UpdateNumberOfBoids(n) =>
             model ! BoidsModelMessages.UpdateNumberOfBoids(n)
             Behaviors.same
-          case BoidsControllerMessages.UpdateParameters(separationWeight, alignmentWeight, cohesionWeight) =>
+          case UpdateParameters(separationWeight, alignmentWeight, cohesionWeight) =>
             model ! BoidsModelMessages.UpdateParameters(separationWeight, alignmentWeight, cohesionWeight)
             Behaviors.same
           case Start =>
@@ -57,6 +59,7 @@ object BoidsController:
             model ! BoidsModelMessages.Reset
             Behaviors.same
         }
+
 object Root:
   def apply(): Behavior[Nothing] =
     Behaviors.setup: context =>
