@@ -24,8 +24,8 @@ object BoidsModel:
       separationWeight: Double = 1.0,
       alignmentWeight: Double = 1.0,
       cohesionWeight: Double = 1.0,
-      width: Double = 100,
-      height: Double = 100,
+      width: Double = 800,
+      height: Double = 600,
       maxSpeed: Double = 4.0,
       perceptionRadius: Double = 50.0,
       avoidRadius: Double = 20.0

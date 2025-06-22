@@ -3,6 +3,7 @@ package it.unibo.pcd
 import Boid.Boid
 import BoidsControllerMessages.GetData
 
+import akka.actor.typed.receptionist.{Receptionist, ServiceKey}
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, ActorSystem, Behavior}
 
@@ -18,6 +19,7 @@ object BoidsControllerMessages:
   case object Start extends BoidsControllerMessages
   case object Stop extends BoidsControllerMessages
   case object Reset extends BoidsControllerMessages
+  case object SetVisibleView extends BoidsControllerMessages
 
 object BoidsController:
   def apply(
@@ -27,13 +29,15 @@ object BoidsController:
   ): Behavior[BoidsControllerMessages] =
     Behaviors.setup: context =>
       Behaviors.withTimers: timer =>
+        val timerKey = "updateTimer"
+
         import BoidsControllerMessages.*
         Behaviors.receiveMessage {
           case GetData(boids) =>
             view ! BoidsViewMessages.Render(boids)
             if isRunning then
               timer.startSingleTimer(
-                "updateTimer",
+                timerKey,
                 Start,
                 300.millis
               )
@@ -48,15 +52,17 @@ object BoidsController:
             model ! BoidsModelMessages.UpdateParameters(separationWeight, alignmentWeight, cohesionWeight)
             Behaviors.same
           case Start =>
-            context.log.info("Start")
             model ! BoidsModelMessages.Step(context.self)
             apply(model, view, true)
           case Stop =>
-            context.log.info("Stop")
+            timer.cancel(timerKey)
             apply(model, view, false)
           case Reset =>
-            context.log.info("Reset")
             model ! BoidsModelMessages.Reset
+            Behaviors.same
+
+          case SetVisibleView =>
+            view ! BoidsViewMessages.SetVisibleView(context.self)
             Behaviors.same
         }
 
@@ -66,10 +72,14 @@ object Root:
       val model: ActorRef[BoidsModelMessages] = context.spawn(ActorBoidsModel(), "model")
       val view: ActorRef[BoidsViewMessages] = context.spawn(ActorBoidsView(), "view")
       val controller = context.spawn(BoidsController(model, view, false), "controller")
+
+      model ! BoidsModelMessages.UpdateDimensions(800, 600)
+      model ! BoidsModelMessages.UpdateNumberOfBoids(200)
+      controller ! BoidsControllerMessages.SetVisibleView
+
       Behaviors.empty
 
 object Prova:
   @main
   def main(): Unit =
-    println("start")
     ActorSystem(Root(), "root")

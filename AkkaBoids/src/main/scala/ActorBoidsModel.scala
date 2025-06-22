@@ -31,10 +31,9 @@ object ActorBoidsModel:
           cohesionWeight = cohesionWeight
         )
       case Step(to) =>
-        context.log.info("Step")
-        model.copy(boids = model.boids.map(_.update(model)))
-        to ! BoidsControllerMessages.GetData(model.boids)
-        model
+        val boids = model.boids.map(_.update(model))
+        to ! BoidsControllerMessages.GetData(boids)
+        model.copy(boids = boids)
       case Reset =>
         model.copy(boids = model.initBoids(model.boids.size))
     apply(newModel)

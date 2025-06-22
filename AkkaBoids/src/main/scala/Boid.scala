@@ -27,6 +27,7 @@ object Boid:
   case class Boid(position: Position, velocity: Velocity):
 
     def update(model: BoidsModel): Boid =
+      //  println("boid before" + this)
       val sep = separation(model) * model.separationWeight
       val ali = alignment(model) * model.alignmentWeight
       val coh = cohesion(model) * model.cohesionWeight
@@ -38,7 +39,9 @@ object Boid:
 
       val newPosition = position + Position(newVelocityNormalized.x, newVelocityNormalized.y)
 
-      Boid(wrapPosition(newPosition, model), newVelocityNormalized)
+      val tmp = Boid(wrapPosition(newPosition, model), newVelocityNormalized)
+      // println("boid after" + tmp)
+      tmp
 
     private def wrapPosition(pos: Position, model: BoidsModel): Position =
       val newX = pos.x match

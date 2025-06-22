@@ -1,7 +1,7 @@
 package it.unibo.pcd
 
 import Boid.Boid
-import BoidsViewMessages.{Render, Reset, Start, Stop, UpdateBoids, UpdateDimensions, UpdateParameters}
+import BoidsViewMessages.*
 
 import akka.actor.typed.{ActorRef, Behavior, Props}
 import akka.actor.typed.scaladsl.Behaviors
@@ -22,63 +22,67 @@ object BoidsViewMessages:
   case class UpdateParameters(separation: Double, alignment: Double, cohesion: Double) extends BoidsViewMessages
   case class UpdateBoids(count: Int) extends BoidsViewMessages
   case class UpdateDimensions(width: Double, height: Double) extends BoidsViewMessages
+  case class SetVisibleView(ref: ActorRef[BoidsControllerMessages]) extends BoidsViewMessages
 
 object ActorBoidsView:
   import akka.actor.typed.ActorRef
   def apply(
       view: BoidsView = new BoidsView,
-      boids: Seq[Boid] = List.empty
+      boids: Seq[Boid] = List.empty,
+      controller: ActorRef[BoidsControllerMessages] = null
   ): Behavior[BoidsViewMessages] =
     Behaviors.setup { context =>
-      val controller: ActorRef[BoidsControllerMessages] =
-        context.system.systemActorOf(BoidsController(null, null), "controller")
 
-      view.StartStopCallBack = (x: Boolean) => context.self ! (if x then Start else Stop)
-      view.ResetCallBack = () => context.self ! Reset
-      view.ParametersCallBack = (x: Double, y: Double, z: Double) => context.self ! UpdateParameters(x, y, z)
-      view.BoidsCallBack = (x: Int) => context.self ! UpdateBoids(x)
-      // view.UpdateDimensionsCallBack = (x: Double, y: Double) => context.self ! UpdateDimensions(x, y)
+      val callBacks: (ActorRef[BoidsControllerMessages]) => Unit =
+        ref =>
+          view.StartStopCallBack = isRunning =>
+            if isRunning then ref ! BoidsControllerMessages.Start
+            else ref ! BoidsControllerMessages.Stop
+          view.ResetCallBack = () => ref ! BoidsControllerMessages.Reset
+          view.ParametersCallBack = (separation, alignment, cohesion) =>
+            ref ! BoidsControllerMessages.UpdateParameters(separation, alignment, cohesion)
+          view.BoidsCallBack = count => ref ! BoidsControllerMessages.UpdateNumberOfBoids(count)
+          view.UpdateDimensionsCallBack =
+            (width, height) => ref ! BoidsControllerMessages.UpdateDimensions(width, height)
 
       Behaviors.receiveMessage:
+        case SetVisibleView(ref) =>
+          view.visible = true
+          callBacks(ref)
+          apply(view, boids, ref)
+          Behaviors.same
+
         case Render(boids) =>
-          context.log.info("Render")
           view.updateBoids(boids)
           Behaviors.same
 
         case Start =>
-          context.log.info("StartCallBack")
           controller ! BoidsControllerMessages.Start
           Behaviors.same
 
         case Stop =>
-          context.log.info("StartCallBack")
           controller ! BoidsControllerMessages.Stop
           Behaviors.same
 
         case Reset =>
-          context.log.info("ResetCallBack")
           controller ! BoidsControllerMessages.Reset
           Behaviors.same
 
         case UpdateParameters(separation, alignment, cohesion) =>
-          context.log.info(s"ParametersCallBack: $separation, $alignment, $cohesion")
           controller ! BoidsControllerMessages.UpdateParameters(separation, alignment, cohesion)
           Behaviors.same
 
         case UpdateBoids(count) =>
-          context.log.info(s"BoidsCallBack: $count")
           controller ! BoidsControllerMessages.UpdateNumberOfBoids(count)
           Behaviors.same
 
         case UpdateDimensions(width, height) =>
-          context.log.info(s"UpdateDimensionsCallBack: $width, $height")
-          controller ! BoidsControllerMessages.UpdateDimensions(width, height)
+          if controller != null then controller ! BoidsControllerMessages.UpdateDimensions(width, height)
           Behaviors.same
-
     }
 
 sealed class BoidsView extends MainFrame:
-  this.visible = true
+
   this.title = "Boids Simulation"
   this.preferredSize = new Dimension(800, 600)
   this.background = Color.WHITE
@@ -103,11 +107,11 @@ sealed class BoidsView extends MainFrame:
 
       g.setColor(Color.BLUE)
       for boid <- boids do
-        val x = boid.position.x
-        val y = boid.position.y
+        val x = boid.position.x.toInt
+        val y = boid.position.y.toInt
         val px = (w / 2 + x * xScale).toInt
         val py = (h / 2 - y * xScale).toInt
-        g.fillOval(px, py, 5, 5)
+        g.fillOval(x, y, 5, 5)
 
       g.setColor(Color.BLACK)
       g.drawString(s"Num. Boids: ${boids.size}", 10, 25)
