@@ -12,7 +12,7 @@ object BoidsModelMessages:
   case class UpdateParameters(separationWeight: Double, alignmentWeight: Double, cohesionWeight: Double)
       extends BoidsModelMessages
   case class Step(to: ActorRef[BoidsControllerMessages]) extends BoidsModelMessages
-  case object Reset extends BoidsModelMessages
+  case class Reset(to: ActorRef[BoidsControllerMessages]) extends BoidsModelMessages
 object ActorBoidsModel:
   def apply(
       model: LocalBoidsModel = LocalBoidsModel()
@@ -34,6 +34,9 @@ object ActorBoidsModel:
         val boids = model.boids.map(_.update(model))
         to ! BoidsControllerMessages.GetData(boids)
         model.copy(boids = boids)
-      case Reset =>
-        model.copy(boids = model.initBoids(model.boids.size))
+      case Reset(to) =>
+        val tmp = model.copy(boids = model.initBoids(model.boids.size))
+        val boids = tmp.boids
+        to ! BoidsControllerMessages.GetData(boids)
+        tmp
     apply(newModel)

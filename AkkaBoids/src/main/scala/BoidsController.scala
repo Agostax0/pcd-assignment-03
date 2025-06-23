@@ -58,8 +58,9 @@ object BoidsController:
             timer.cancel(timerKey)
             apply(model, view, false)
           case Reset =>
-            model ! BoidsModelMessages.Reset
-            Behaviors.same
+            timer.cancel(timerKey)
+            model ! BoidsModelMessages.Reset(context.self)
+            apply(model, view, false)
 
           case SetVisibleView =>
             view ! BoidsViewMessages.SetVisibleView(context.self)
