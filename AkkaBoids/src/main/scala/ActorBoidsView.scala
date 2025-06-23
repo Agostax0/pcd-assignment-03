@@ -77,7 +77,7 @@ object ActorBoidsView:
           Behaviors.same
 
         case UpdateDimensions(width, height) =>
-          if controller != null then controller ! BoidsControllerMessages.UpdateDimensions(width, height)
+          controller ! BoidsControllerMessages.UpdateDimensions(width, height)
           Behaviors.same
     }
 
