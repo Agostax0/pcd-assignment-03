@@ -4,16 +4,16 @@ import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.scaladsl.Behaviors.*
 
-sealed trait BoidActorMessages
+trait BoidActorMessages
 object BoidActorMessages:
   ???
 object BoidActor:
   def apply(
       receptionist: ActorRef[ActorReceptionistMessages],
       index: Int
-  ): Behavior[BoidActorMessages] = Behaviors.setup(context =>
-
-    receptionist ! ActorReceptionistMessages.Register(index.toString, context.self)
-
-    Behaviors.same
+  ): Behavior[BoidActorMessages | ActorReceptionistResponses] = Behaviors.setup(context =>
+    Behaviors.receiveMessage {
+      case ActorReceptionistResponses.Response(refs) => Behaviors.same
+      case _ => Behaviors.same
+    }
   )

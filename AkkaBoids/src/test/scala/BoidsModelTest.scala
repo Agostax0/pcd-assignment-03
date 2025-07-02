@@ -2,7 +2,7 @@ package it.unibo.pcd
 
 import it.unibo.pcd.BoidsModel.LocalBoidsModel
 import org.scalatest.flatspec.AnyFlatSpec
-import org.scalatest.matchers.must.Matchers.{have, not}
+import org.scalatest.matchers.must.Matchers.{contain, have, not}
 import org.scalatest.matchers.should.Matchers.should
 
 class BoidsModelTest extends AnyFlatSpec:
@@ -18,8 +18,9 @@ class BoidsModelTest extends AnyFlatSpec:
     boids should have size 100
 
   it should "update boids correctly" in:
-    val boids = LocalBoidsModel().initBoids(100)
+    val boids = LocalBoidsModel().initBoids(100).view.toList
 
     val updatedModel = LocalBoidsModel(boids = boids.map(_.update(LocalBoidsModel())))
 
     boids should not equal updatedModel.boids
+    boids should have size updatedModel.boids.size
