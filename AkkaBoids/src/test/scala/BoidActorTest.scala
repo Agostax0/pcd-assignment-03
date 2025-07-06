@@ -3,7 +3,7 @@ package it.unibo.pcd
 import akka.actor.testkit.typed.scaladsl.{ActorTestKit, TestProbe}
 import akka.actor.testkit.typed.scaladsl.{ActorTestKit, TestProbe}
 import akka.actor.typed.ActorRef
-import it.unibo.pcd.ActorReceptionistMessages.{Register, RelayAll}
+import it.unibo.pcd.ActorReceptionistMessages.{Register, RelayAll, RelayTo}
 import it.unibo.pcd.BoidActor.BoidActorMessages
 import it.unibo.pcd.BoidActor.BoidActorMessages.{NeighborRequest, NeighborStatus, ResetBoid, UpdateModel}
 import org.scalatest.{BeforeAndAfterAll, durations}
@@ -64,6 +64,27 @@ class BoidActorTest extends AnyFlatSpec with BeforeAndAfterAll with should.Match
     boid2 ! NeighborRequest(2)
     probe expectMessage RelayAll(NeighborStatus(Position.zero, Velocity.zero, 2, 2))
 
+  it should "allow to start a mass boid update when all neighbor have been chosen" in:
+    val boid1 = genBoidActor(receptionist, 1)
+    val probe = genBoidProbe
+
+    receptionist ! Register(1.toString, boid1)
+    receptionist ! Register(2.toString, probe.ref)
+
+    receptionist ! RelayTo(1.toString, NeighborRequest(2))
+    val msg = probe.receiveMessage()
+    val boid1Info = msg match
+      case status: NeighborStatus =>
+        (status.position, status.velocity)
+
+    receptionist ! RelayTo(1.toString, NeighborStatus(Position.zero, Velocity.zero, 0, 1))
+
+    receptionist ! RelayTo(1.toString, NeighborRequest(2))
+    probe.receiveMessage() match
+      case status: NeighborStatus =>
+        status.position should not be boid1Info._1
+        status.position should not be boid1Info._2
+
   "A reset boid" should "reset the boid infos" in:
     val probe = genReceptionistProbe
 
@@ -93,5 +114,9 @@ class BoidActorTest extends AnyFlatSpec with BeforeAndAfterAll with should.Match
     val newModel: BoidsModel = BoidsModel.actor.copy(separationWeight = 100)
 
     receptionist ! RelayAll(UpdateModel(newModel))
-    boid1 expectMessage UpdateModel(newModel)
-    boid2 expectMessage UpdateModel(newModel)
+
+    val msg1 = boid1 expectMessage UpdateModel(newModel)
+    msg1.model.separationWeight shouldBe 100.0
+
+    val msg2 = boid2 expectMessage UpdateModel(newModel)
+    msg2.model.separationWeight shouldBe 100.0
