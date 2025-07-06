@@ -1,19 +1,44 @@
 package it.unibo.pcd
 
-import akka.actor.typed.{ActorRef, Behavior}
-import akka.actor.typed.scaladsl.Behaviors
-import akka.actor.typed.scaladsl.Behaviors.*
+import ActorReceptionistMessages.RelayAll
+import Boid.Boid
+import BoidActor.BoidActorMessages.{NeighborRequest, NeighborStatus, ResetBoid, UpdateModel}
 
-trait BoidActorMessages
-object BoidActorMessages:
-  ???
+import akka.actor.typed.scaladsl.Behaviors
+import akka.actor.typed.{ActorRef, Behavior}
+
+import scala.language.postfixOps
+
 object BoidActor:
+  trait BoidActorMessages
+  object BoidActorMessages:
+    case class NeighborStatus(
+        position: Position,
+        velocity: Velocity,
+        indexInQueue: Int,
+        queueSize: Int
+    ) extends BoidActorMessages
+    case class NeighborRequest(nQueried: Int) extends BoidActorMessages
+    case class UpdateModel(model: BoidsModel) extends BoidActorMessages
+    case object ResetBoid extends BoidActorMessages
+    
   def apply(
       receptionist: ActorRef[ActorReceptionistMessages],
-      index: Int
-  ): Behavior[BoidActorMessages | ActorReceptionistResponses] = Behaviors.setup(context =>
+      myIndex: Int,
+      boid: Boid = Boid(Position.zero, Velocity.zero),
+      neighbors: List[Boid] = List.empty,
+      model: BoidsModel = BoidsModel.actor
+  ): Behavior[BoidActorMessages] = Behaviors.setup(context =>
     Behaviors.receiveMessage {
-      case ActorReceptionistResponses.Response(refs) => Behaviors.same
+      case ResetBoid => apply(receptionist, myIndex, model.reset, List.empty, model)
+      case UpdateModel(newModel) => apply(receptionist, myIndex, boid, neighbors, newModel)
+      case NeighborRequest(n) =>
+        receptionist ! RelayAll(NeighborStatus(boid.position, boid.velocity, myIndex, n))
+        Behaviors.same
+      case NeighborStatus(pos, vel, index, size) =>
+        if myIndex != index && boid.position.distance(pos) < model.perceptionRadius then
+          apply(receptionist, myIndex, neighbors = neighbors.updated(myIndex, Boid(pos, vel)))
+        else Behaviors.same
       case _ => Behaviors.same
     }
   )

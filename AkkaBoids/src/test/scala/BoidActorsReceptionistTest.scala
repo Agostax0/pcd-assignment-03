@@ -6,6 +6,7 @@ import akka.actor.typed.ActorRef
 import akka.actor.typed.scaladsl.Behaviors
 import it.unibo.pcd.ActorReceptionistMessages.{GetActors, Register, RelayAll, RelayTo, Unregister}
 import it.unibo.pcd.ActorReceptionistResponses.Response
+import it.unibo.pcd.BoidActor.BoidActorMessages
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.funsuite.AnyFunSuiteLike
@@ -25,13 +26,13 @@ class BoidActorsReceptionistTest extends AnyFlatSpec with Matchers with BeforeAn
     testKit.createTestProbe[ActorReceptionistMessages]()
   private def genReceptionistActor: ActorRef[ActorReceptionistMessages] =
     testKit.spawn[ActorReceptionistMessages](BoidActorsReceptionist())
-  private def genBoidProbe: TestProbe[BoidActorMessages | ActorReceptionistResponses] =
-    testKit.createTestProbe[BoidActorMessages | ActorReceptionistResponses]()
+  private def genBoidProbe: TestProbe[BoidActorMessages] =
+    testKit.createTestProbe[BoidActorMessages]()
   private def genBoidActor(
       receptionist: ActorRef[ActorReceptionistMessages],
       index: Int
-  ): ActorRef[BoidActorMessages | ActorReceptionistResponses] =
-    testKit.spawn[BoidActorMessages | ActorReceptionistResponses](BoidActor(receptionist, index))
+  ): ActorRef[BoidActorMessages] =
+    testKit.spawn[BoidActorMessages](BoidActor(receptionist, index))
 
   "A Receptionist" should "support registering" in:
     val receptionistProbe = genReceptionistProbe
@@ -45,17 +46,21 @@ class BoidActorsReceptionistTest extends AnyFlatSpec with Matchers with BeforeAn
     val receptionist = genReceptionistActor
 
     val boid1 = genBoidActor(receptionist, 1)
-    val boid2 = genBoidProbe
+    val boid2 = genReceptionistResponseProbe
     receptionist ! Register(1.toString, boid1)
 
     receptionist ! GetActors(1.toString, boid2.ref)
     boid2 expectMessage Response(List((1.toString, boid1.ref)))
 
+  private def genReceptionistResponseProbe = {
+    testKit.createTestProbe[ActorReceptionistResponses]("")
+  }
+
   it should "support unregistering" in:
     val receptionist = genReceptionistActor
 
     val boid1 = genBoidActor(receptionist, 1)
-    val boid2 = genBoidProbe
+    val boid2 = genReceptionistResponseProbe
     receptionist ! Register(1.toString, boid1)
 
     receptionist ! Unregister(1.toString)
