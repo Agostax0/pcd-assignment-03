@@ -1,6 +1,7 @@
 package it.unibo.pcd
 
-import BoidsModel.LocalBoidsModel
+import BoidsModel.ActorBoidsModel
+
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.scaladsl.Behaviors.*
@@ -15,7 +16,7 @@ object BoidsModelMessages:
   case class Reset(to: ActorRef[BoidsControllerMessages]) extends BoidsModelMessages
 object ActorBoidsModel:
   def apply(
-      model: LocalBoidsModel = LocalBoidsModel()
+      model: ActorBoidsModel = BoidsModel.actor
   ): Behavior[BoidsModelMessages] = receive: (context, message) =>
     import BoidsModelMessages.*
 
@@ -23,7 +24,7 @@ object ActorBoidsModel:
       case UpdateDimensions(width, height) =>
         model.copy(width = width, height = height)
       case UpdateNumberOfBoids(n) =>
-        model.copy(boids = model.initBoids(n))
+        ???
       case UpdateParameters(separationWeight, alignmentWeight, cohesionWeight) =>
         model.copy(
           separationWeight = separationWeight,
@@ -31,12 +32,15 @@ object ActorBoidsModel:
           cohesionWeight = cohesionWeight
         )
       case Step(to) =>
-        val boids = model.boids.map(_.update(model))
-        to ! BoidsControllerMessages.GetData(boids)
-        model.copy(boids = boids)
+        ???
+//        val boids = model.boids.map(_.update(model))
+//        to ! BoidsControllerMessages.GetData(boids)
+//        model.copy(boids = boids)
       case Reset(to) =>
-        val tmp = model.copy(boids = model.initBoids(model.boids.size))
-        val boids = tmp.boids
-        to ! BoidsControllerMessages.GetData(boids)
-        tmp
-    apply(newModel)
+        ???
+//        val tmp = model.copy(boids = model.initBoids(model.boids.size))
+//        val boids = tmp.boids
+//        to ! BoidsControllerMessages.GetData(boids)
+//        tmp
+    // apply(newModel)
+    Behaviors.same

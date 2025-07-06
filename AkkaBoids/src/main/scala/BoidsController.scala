@@ -23,7 +23,7 @@ object BoidsControllerMessages:
 
 object BoidsController:
   def apply(
-      model: ActorRef[BoidsModelMessages],
+      // TODO model: ActorRef[BoidsModelMessages],
       view: ActorRef[BoidsViewMessages],
       isRunning: Boolean = false
   ): Behavior[BoidsControllerMessages] =
@@ -43,24 +43,29 @@ object BoidsController:
               )
             Behaviors.same
           case UpdateDimensions(width, height) =>
-            model ! BoidsModelMessages.UpdateDimensions(width, height)
+            // model ! BoidsModelMessages.UpdateDimensions(width, height)
             Behaviors.same
           case UpdateNumberOfBoids(n) =>
-            model ! BoidsModelMessages.UpdateNumberOfBoids(n)
+            // model ! BoidsModelMessages.UpdateNumberOfBoids(n)
             Behaviors.same
           case UpdateParameters(separationWeight, alignmentWeight, cohesionWeight) =>
-            model ! BoidsModelMessages.UpdateParameters(separationWeight, alignmentWeight, cohesionWeight)
+            // model ! BoidsModelMessages.UpdateParameters(separationWeight, alignmentWeight, cohesionWeight)
             Behaviors.same
           case Start =>
-            model ! BoidsModelMessages.Step(context.self)
-            apply(model, view, true)
+            // model ! BoidsModelMessages.Step(context.self)
+            // apply(model, view, true)
+            Behaviors.same
+
           case Stop =>
             timer.cancel(timerKey)
-            apply(model, view, false)
+            //          apply(model, view, false)
+            Behaviors.same
+
           case Reset =>
             timer.cancel(timerKey)
-            model ! BoidsModelMessages.Reset(context.self)
-            apply(model, view, false)
+//            model ! BoidsModelMessages.Reset(context.self)
+//            apply(model, view, false)
+            Behaviors.same
 
           case SetVisibleView =>
             view ! BoidsViewMessages.SetVisibleView(context.self)
@@ -70,13 +75,13 @@ object BoidsController:
 object Root:
   def apply(): Behavior[Nothing] =
     Behaviors.setup: context =>
-      val model: ActorRef[BoidsModelMessages] = context.spawn(ActorBoidsModel(), "model")
-      val view: ActorRef[BoidsViewMessages] = context.spawn(ActorBoidsView(), "view")
-      val controller = context.spawn(BoidsController(model, view, false), "controller")
+      //  val model: ActorRef[BoidsModelMessages] = context.spawn(ActorBoidsModel(), "model")
+      //  val view: ActorRef[BoidsViewMessages] = context.spawn(ActorBoidsView(), "view")
+      //  val controller = context.spawn(BoidsController(model, view, false), "controller")
 
-      model ! BoidsModelMessages.UpdateDimensions(800, 600)
-      model ! BoidsModelMessages.UpdateNumberOfBoids(200)
-      controller ! BoidsControllerMessages.SetVisibleView
+      //  model ! BoidsModelMessages.UpdateDimensions(800, 600)
+      //  model ! BoidsModelMessages.UpdateNumberOfBoids(200)
+      //  controller ! BoidsControllerMessages.SetVisibleView
 
       Behaviors.empty
 
