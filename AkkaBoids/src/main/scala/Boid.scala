@@ -16,7 +16,7 @@ case class Velocity(x: Double, y: Double):
   def -(other: Velocity): Velocity = Velocity(x - other.x, y - other.y)
   def abs: Double = math.sqrt(x * x + y * y)
   def normalized: Velocity = Velocity(x / abs, y / abs)
-  def /(scalar: Double): Position = Position(x / scalar, y / scalar)
+  def /(scalar: Double): Velocity = Velocity(x / scalar, y / scalar)
   def *(scalar: Double): Velocity = Velocity(x * scalar, y * scalar)
 object Velocity:
   def zero: Velocity = Velocity(0, 0)

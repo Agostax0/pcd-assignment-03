@@ -1,6 +1,8 @@
 package it.unibo.pcd
 
 import Boid.Boid
+
+import scala.language.postfixOps
 sealed trait BoidsModel:
   val separationWeight: Double
   val alignmentWeight: Double
@@ -23,6 +25,47 @@ sealed trait BoidsModel:
       Velocity(random.between(0, maxSpeed / 2), random.between(0, maxSpeed / 2)) - Velocity(maxSpeed / 4, maxSpeed / 4)
     Boid(pos, vel)
 
+  def update(boid: Boid, neighbors: List[Boid]): Boid =
+    val separationValue = separation(boid, neighbors) * separationWeight
+    val cohesionValue = cohesion(boid, neighbors) * cohesionWeight
+    val alignmentValue = alignment(boid, neighbors) * alignmentWeight
+
+    var vel = separationValue + cohesionValue + alignmentValue
+    val speed = vel.abs
+
+    if speed > maxSpeed then vel = vel.normalized * maxSpeed
+
+    var pos = boid.position + Position(vel.x, vel.y)
+
+    if pos.x < minX then pos = pos + Position(width, 0)
+    if pos.x >= maxX then pos = pos - Position(width, 0)
+    if pos.y < minY then pos = pos + Position(0, height)
+    if pos.y >= minY then pos = pos - Position(0, height)
+
+    Boid(pos, vel)
+
+  private def alignment(boid: Boid, neighbors: List[Boid]): Velocity =
+    val velocities =
+      for neighbor <- neighbors
+      yield neighbor.velocity
+    if velocities.isEmpty then Velocity.zero
+    else (velocities.foldRight(Velocity.zero)(_ + _) / velocities.size).normalized
+  private def cohesion(boid: Boid, neighbors: List[Boid]): Velocity =
+    val positions =
+      for neighbor <- neighbors
+      yield neighbor.position
+    if positions.isEmpty then Velocity.zero
+    else
+      val center = (positions.foldRight(Position.zero)(_ + _) / positions.size) - boid.position
+      Velocity(center.x, center.y).normalized
+  private def separation(boid: Boid, neighbors: List[Boid]): Velocity =
+    val positions = for
+      neighbor <- neighbors
+      if neighbor.position.distance(boid.position) < avoidRadius
+      position = boid.position - neighbor.position
+    yield position
+    if positions.isEmpty then Velocity.zero
+    else (positions.foldRight(Velocity.zero)((pos, vel) => Velocity(pos.x, pos.x) + vel) / positions.size).normalized
 object BoidsModel:
   def actor: ActorBoidsModel = ActorBoidsModel()
 
