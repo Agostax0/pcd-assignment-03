@@ -3,9 +3,9 @@ package it.unibo.pcd
 import akka.actor.testkit.typed.scaladsl.{ActorTestKit, TestProbe}
 import akka.actor.testkit.typed.scaladsl.{ActorTestKit, TestProbe}
 import akka.actor.typed.ActorRef
-import it.unibo.pcd.ActorReceptionistMessages.{Register, RelayAll, RelayTo}
+import it.unibo.pcd.ActorReceptionistMessages.{Register, RelayAll, RelayTo, Unregister}
 import it.unibo.pcd.BoidActor.BoidActorMessages
-import it.unibo.pcd.BoidActor.BoidActorMessages.{NeighborRequest, NeighborStatus, ResetBoid, UpdateModel}
+import it.unibo.pcd.BoidActor.BoidActorMessages.{NeighborRequest, NeighborStatus, ResetBoid, StopBoid, UpdateModel}
 import org.scalatest.{BeforeAndAfterAll, durations}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.funsuite.AnyFunSuite
@@ -29,7 +29,7 @@ class BoidActorTest extends AnyFlatSpec with BeforeAndAfterAll with should.Match
   private def genReceptionistProbe: TestProbe[ActorReceptionistMessages] =
     testKit.createTestProbe[ActorReceptionistMessages]()
   private def genReceptionistActor: ActorRef[ActorReceptionistMessages] =
-    testKit.spawn[ActorReceptionistMessages](BoidActorsReceptionist())
+    testKit.spawn[ActorReceptionistMessages](BoidActorsReceptionist().narrow)
   private def genBoidProbe: TestProbe[BoidActorMessages] =
     testKit.createTestProbe[BoidActorMessages]()
   private def genBoidActor(
@@ -111,7 +111,7 @@ class BoidActorTest extends AnyFlatSpec with BeforeAndAfterAll with should.Match
     receptionist ! Register(1.toString, boid1.ref)
     receptionist ! Register(2.toString, boid2.ref)
 
-    val newModel: BoidsModel = BoidsModel.actor.copy(separationWeight = 100)
+    val newModel: BoidsModel = BoidsModel.localModel.copy(separationWeight = 100)
 
     receptionist ! RelayAll(UpdateModel(newModel))
 
@@ -120,3 +120,11 @@ class BoidActorTest extends AnyFlatSpec with BeforeAndAfterAll with should.Match
 
     val msg2 = boid2 expectMessage UpdateModel(newModel)
     msg2.model.separationWeight shouldBe 100.0
+
+  "A boid actor" should "stop when receiving a StopBoid message" in:
+    val probe = genReceptionistProbe
+    val boid = genBoidActor(probe.ref, 1)
+    boid ! StopBoid
+
+    probe expectMessage Unregister(1.toString)
+    probe.expectTerminated(boid)

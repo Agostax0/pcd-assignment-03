@@ -4,7 +4,7 @@ import org.scalactic.Prettifier.default
 import akka.actor.testkit.typed.scaladsl.{ActorTestKit, TestProbe}
 import akka.actor.typed.ActorRef
 import akka.actor.typed.scaladsl.Behaviors
-import it.unibo.pcd.ActorReceptionistMessages.{GetActors, Register, RelayAll, RelayTo, Unregister}
+import it.unibo.pcd.ActorReceptionistMessages.*
 import it.unibo.pcd.ActorReceptionistResponses.Response
 import it.unibo.pcd.BoidActor.BoidActorMessages
 import org.scalatest.BeforeAndAfterAll
@@ -52,9 +52,8 @@ class BoidActorsReceptionistTest extends AnyFlatSpec with Matchers with BeforeAn
     receptionist ! GetActors(1.toString, boid2.ref)
     boid2 expectMessage Response(List((1.toString, boid1.ref)))
 
-  private def genReceptionistResponseProbe = {
+  private def genReceptionistResponseProbe =
     testKit.createTestProbe[ActorReceptionistResponses]("")
-  }
 
   it should "support unregistering" in:
     val receptionist = genReceptionistActor
@@ -77,6 +76,12 @@ class BoidActorsReceptionistTest extends AnyFlatSpec with Matchers with BeforeAn
     receptionist ! RelayTo(1.toString, X())
 
     probe expectMessage X()
+  it should "support relaying to a model" in:
+    val probe = testKit.createTestProbe[BoidModelMessages]("modelProbe")
+    val receptionist = testKit.spawn[ActorReceptionistMessages](BoidActorsReceptionist(probe.ref))
+
+    receptionist ! RelayTo("", BoidModelMessages.ReceivePosition(Position(1, 2), 3))
+    probe expectMessage BoidModelMessages.ReceivePosition(Position(1, 2), 0)
 
   it should "support relaying to all actors registered" in:
     val receptionist = genReceptionistActor

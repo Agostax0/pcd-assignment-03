@@ -2,6 +2,11 @@ package it.unibo.pcd
 
 import Boid.Boid
 
+import akka.actor.typed.Behavior
+import akka.actor.typed.scaladsl.Behaviors
+import it.unibo.pcd.ActorReceptionistMessages.RelayAll
+import it.unibo.pcd.BoidActor.BoidActorMessages
+
 import scala.language.postfixOps
 sealed trait BoidsModel:
   val separationWeight: Double
@@ -67,9 +72,9 @@ sealed trait BoidsModel:
     if positions.isEmpty then Velocity.zero
     else (positions.foldRight(Velocity.zero)((pos, vel) => Velocity(pos.x, pos.x) + vel) / positions.size).normalized
 object BoidsModel:
-  def actor: ActorBoidsModel = ActorBoidsModel()
+  def localModel: LocalModel = LocalModel()
 
-  case class ActorBoidsModel(
+  case class LocalModel(
       separationWeight: Double = 1.0,
       alignmentWeight: Double = 1.0,
       cohesionWeight: Double = 1.0,
@@ -79,3 +84,35 @@ object BoidsModel:
       perceptionRadius: Double = 50.0,
       avoidRadius: Double = 20.0
   ) extends BoidsModel
+
+trait BoidModelMessages
+object BoidModelMessages:
+  case class UpdateBoidNumber(n: Int) extends BoidModelMessages
+  case class UpdateModel(model: BoidsModel) extends BoidModelMessages
+  case class ReceivePosition(pos: Position, size: Int) extends BoidModelMessages
+  case object Step extends BoidModelMessages
+object BoidModelActor:
+  def apply(
+      positions: List[Position] = List.empty
+  ): Behavior[BoidModelMessages] =
+    Behaviors.setup { context =>
+      val receptionist = context.spawn(BoidActorsReceptionist(context.self), "boidReceptionist")
+
+      import BoidModelMessages.*
+      Behaviors.receiveMessage {
+        case UpdateBoidNumber(n) =>
+          Behaviors.same
+        case UpdateModel(model) =>
+          receptionist ! RelayAll(BoidActorMessages.UpdateModel(model))
+          Behaviors.same
+        case Step =>
+          receptionist ! ActorReceptionistMessages.SendPositions
+          Behaviors.same
+        case ReceivePosition(pos, size) =>
+          if positions.size < size then apply(positions :+ pos)
+          else
+            // TODO view render these positions
+            ???
+          Behaviors.same
+      }
+    }

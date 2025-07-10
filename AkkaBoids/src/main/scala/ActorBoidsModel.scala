@@ -1,6 +1,6 @@
 package it.unibo.pcd
 
-import BoidsModel.ActorBoidsModel
+import BoidsModel.LocalModel
 
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.Behaviors
@@ -16,7 +16,7 @@ object BoidsModelMessages:
   case class Reset(to: ActorRef[BoidsControllerMessages]) extends BoidsModelMessages
 object ActorBoidsModel:
   def apply(
-      model: ActorBoidsModel = BoidsModel.actor
+      model: LocalModel = BoidsModel.localModel
   ): Behavior[BoidsModelMessages] = receive: (context, message) =>
     import BoidsModelMessages.*
 
