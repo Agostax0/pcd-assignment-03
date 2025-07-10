@@ -3,7 +3,7 @@ ThisBuild / version := "0.1.0-SNAPSHOT"
 ThisBuild / scalaVersion := "3.3.6"
 
 ThisBuild / resolvers += "Akka library repository".at("https://repo.akka.io/maven")
-
+Test / parallelExecution := false
 lazy val akkaVersion = "2.10.5"
 lazy val akkaGroup = "com.typesafe.akka"
 
