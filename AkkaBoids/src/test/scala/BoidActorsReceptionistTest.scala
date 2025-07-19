@@ -52,6 +52,18 @@ class BoidActorsReceptionistTest extends AnyFlatSpec with Matchers with BeforeAn
     receptionist ! GetActors(1.toString, boid2.ref)
     boid2 expectMessage Response(List((1.toString, boid1.ref)))
 
+  it should "support getting all actor present" in:
+    val receptionist = genReceptionistActor
+    val boids = List(genBoidProbe, genBoidProbe, genBoidProbe)
+
+    boids.foreach(boid => receptionist ! Register("", boid.ref))
+
+    val probe = testKit.createTestProbe[ActorReceptionistResponses]()
+
+    receptionist ! GetActors("*", probe.ref)
+
+    probe.expectMessage(Response(boids.map(boid => ("", boid.ref))))
+
   private def genReceptionistResponseProbe =
     testKit.createTestProbe[ActorReceptionistResponses]("")
 
@@ -95,3 +107,16 @@ class BoidActorsReceptionistTest extends AnyFlatSpec with Matchers with BeforeAn
 
     probe1 expectMessage X()
     probe2 expectMessage X()
+
+  it should "support updating its number of boid actors" in:
+    val receptionist = genReceptionistActor
+    val probe = testKit.createTestProbe[ActorReceptionistResponses]()
+
+    receptionist ! UpdateBoidNumber(3)
+
+    receptionist ! GetActors("*", probe.ref)
+
+    probe.receiveMessage() match
+      case Response(actors) =>
+        actors.size shouldBe 3
+        actors.map(_._1) should contain theSameElementsAs List("0", "1", "2")

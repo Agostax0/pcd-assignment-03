@@ -8,13 +8,18 @@ import it.unibo.pcd.BoidModelMessages.ReceivePosition
 
 sealed trait ActorReceptionistMessages
 object ActorReceptionistMessages:
-  case class Register(name: String, ref: ActorRef[BoidActorMessages]) extends ActorReceptionistMessages
-  case class GetActors(nameShared: String, replyTo: ActorRef[ActorReceptionistResponses])
-      extends ActorReceptionistMessages
-  case object SendPositions extends ActorReceptionistMessages
-  case class RelayTo[M](name: String, msg: M) extends ActorReceptionistMessages
-  case class RelayAll(msg: BoidActorMessages) extends ActorReceptionistMessages
-  case class Unregister(name: String) extends ActorReceptionistMessages
+  trait FromBoid extends ActorReceptionistMessages
+  case class Unregister(name: String) extends FromBoid
+  case class Register(name: String, ref: ActorRef[BoidActorMessages]) extends FromBoid
+
+  trait FromModel extends ActorReceptionistMessages
+  case class GetActors(nameShared: String, replyTo: ActorRef[ActorReceptionistResponses]) extends FromModel
+  case object SendPositions extends FromModel
+  case class UpdateBoidNumber(num: Int) extends FromModel
+
+  trait Control extends ActorReceptionistMessages
+  case class RelayTo[M](name: String, msg: M) extends Control
+  case class RelayAll(msg: BoidActorMessages) extends Control
 sealed trait ActorReceptionistResponses
 object ActorReceptionistResponses:
   case class Response(infos: List[(String, ActorRef[BoidActorMessages])]) extends ActorReceptionistResponses
@@ -49,5 +54,19 @@ object BoidActorsReceptionist:
       case SendPositions =>
         context.self ! RelayAll(SendPosition)
         Behaviors.same
+
+      case UpdateBoidNumber(n) =>
+        if n > db.size then
+          val newBoids = (db.size until n)
+            .map(i => (i.toString, context.spawn(BoidActor(receptionist = context.self, myIndex = i), i.toString)))
+          apply(model, db ++ newBoids.toList)
+        else if n < db.size then
+          val toRemove = db.drop(n)
+          toRemove.foreach { case (name, ref) =>
+            ref ! StopBoid
+            context.stop(ref)
+          }
+          apply(model, db.take(n))
+        else Behaviors.same
     }
   }

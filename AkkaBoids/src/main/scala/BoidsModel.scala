@@ -4,9 +4,10 @@ import Boid.Boid
 
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.Behaviors
-import it.unibo.pcd.ActorReceptionistMessages.RelayAll
+import it.unibo.pcd.ActorReceptionistMessages.{GetActors, Register, RelayAll, Unregister}
 import it.unibo.pcd.BoidActor.BoidActorMessages
 
+import scala.concurrent.Future
 import scala.language.postfixOps
 sealed trait BoidsModel:
   val separationWeight: Double
@@ -93,7 +94,8 @@ object BoidModelMessages:
   case object Step extends BoidModelMessages
 object BoidModelActor:
   def apply(
-      positions: List[Position] = List.empty
+      positions: List[Position] = List.empty,
+      activeBoids: Int = 0
   ): Behavior[BoidModelMessages] =
     Behaviors.setup { context =>
       val receptionist = context.spawn(BoidActorsReceptionist(context.self), "boidReceptionist")
@@ -101,13 +103,14 @@ object BoidModelActor:
       import BoidModelMessages.*
       Behaviors.receiveMessage {
         case UpdateBoidNumber(n) =>
-          Behaviors.same
+          receptionist ! ActorReceptionistMessages.UpdateBoidNumber(n)
+          apply(List.empty, n)
         case UpdateModel(model) =>
           receptionist ! RelayAll(BoidActorMessages.UpdateModel(model))
-          Behaviors.same
+          apply(List.empty)
         case Step =>
           receptionist ! ActorReceptionistMessages.SendPositions
-          Behaviors.same
+          apply(List.empty)
         case ReceivePosition(pos, size) =>
           if positions.size < size then apply(positions :+ pos)
           else
