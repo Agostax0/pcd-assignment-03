@@ -1,4 +1,5 @@
 package it.unibo.pcd
+package model
 
 case class Position(x: Double, y: Double):
   private def op(other: Position, op: (Position, Position) => Position): Position = op(this, other)

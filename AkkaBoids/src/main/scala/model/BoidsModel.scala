@@ -1,13 +1,12 @@
 package it.unibo.pcd
+package model
 
 import Boid.Boid
-
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.Behaviors
-import it.unibo.pcd.ActorReceptionistMessages.{GetActors, Register, RelayAll, Unregister}
-import it.unibo.pcd.BoidActor.BoidActorMessages
+import it.unibo.pcd.model.ActorReceptionistMessages.RelayAll
+import it.unibo.pcd.model.BoidActor.BoidActorMessages
 
-import scala.concurrent.Future
 import scala.language.postfixOps
 sealed trait BoidsModel:
   val separationWeight: Double

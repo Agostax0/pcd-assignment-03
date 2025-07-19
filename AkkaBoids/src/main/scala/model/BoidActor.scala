@@ -1,4 +1,5 @@
 package it.unibo.pcd
+package model
 
 import ActorReceptionistMessages.{RelayAll, RelayTo, Unregister}
 import Boid.Boid
@@ -6,7 +7,7 @@ import BoidActor.BoidActorMessages.{NeighborRequest, NeighborStatus, ResetBoid, 
 
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
-import it.unibo.pcd.BoidModelMessages.ReceivePosition
+import it.unibo.pcd.model.BoidModelMessages.ReceivePosition
 
 import scala.language.postfixOps
 

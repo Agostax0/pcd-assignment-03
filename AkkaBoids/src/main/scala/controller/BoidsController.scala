@@ -1,11 +1,12 @@
 package it.unibo.pcd
+package controller
 
-import Boid.Boid
 import BoidsControllerMessages.GetData
-
 import akka.actor.typed.receptionist.{Receptionist, ServiceKey}
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, ActorSystem, Behavior}
+import it.unibo.pcd.model.Boid.Boid
+import it.unibo.pcd.view.BoidsViewMessages
 
 import scala.concurrent.duration.DurationInt
 

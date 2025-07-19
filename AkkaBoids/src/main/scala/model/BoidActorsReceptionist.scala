@@ -1,10 +1,11 @@
 package it.unibo.pcd
+package model
 
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
-import it.unibo.pcd.BoidActor.BoidActorMessages
-import it.unibo.pcd.BoidActor.BoidActorMessages.{SendPosition, StopBoid}
-import it.unibo.pcd.BoidModelMessages.ReceivePosition
+import it.unibo.pcd.model.BoidActor.BoidActorMessages
+import it.unibo.pcd.model.BoidActor.BoidActorMessages.{SendPosition, StopBoid}
+import it.unibo.pcd.model.BoidModelMessages.ReceivePosition
 
 sealed trait ActorReceptionistMessages
 object ActorReceptionistMessages:
