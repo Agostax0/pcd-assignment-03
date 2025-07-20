@@ -1,10 +1,11 @@
 package it.unibo.pcd
+package model
 
 import BoidsModel.LocalModel
-
 import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.scaladsl.Behaviors.*
+import it.unibo.pcd.controller.BoidsControllerMessages
 
 sealed trait BoidsModelMessages
 object BoidsModelMessages:

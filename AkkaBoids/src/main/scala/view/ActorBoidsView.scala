@@ -1,10 +1,12 @@
 package it.unibo.pcd
+package view
 
-import Boid.Boid
+import it.unibo.pcd.model.Boid.Boid
 import BoidsViewMessages.*
-
 import akka.actor.typed.{ActorRef, Behavior, Props}
 import akka.actor.typed.scaladsl.Behaviors
+import it.unibo.pcd.controller.BoidsControllerMessages
+import it.unibo.pcd.view.BoidsViewMessages
 
 import java.awt.{Color, Dimension, Graphics2D}
 import javax.swing.BorderFactory
