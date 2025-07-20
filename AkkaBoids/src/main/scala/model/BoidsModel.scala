@@ -4,7 +4,7 @@ package model
 import Boid.Boid
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.Behaviors
-import it.unibo.pcd.model.ActorReceptionistMessages.RelayAll
+import it.unibo.pcd.ActorReceptionistMessages.RelayAll
 import it.unibo.pcd.model.BoidActor.BoidActorMessages
 
 import scala.language.postfixOps
