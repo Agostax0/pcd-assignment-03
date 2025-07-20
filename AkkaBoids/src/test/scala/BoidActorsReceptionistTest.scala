@@ -7,6 +7,7 @@ import akka.actor.typed.scaladsl.Behaviors
 import it.unibo.pcd.ActorReceptionistMessages.*
 import it.unibo.pcd.ActorReceptionistResponses.Response
 import it.unibo.pcd.BoidActor.BoidActorMessages
+import it.unibo.pcd.BoidActor.BoidActorMessages.StopBoid
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.funsuite.AnyFunSuiteLike
@@ -108,7 +109,7 @@ class BoidActorsReceptionistTest extends AnyFlatSpec with Matchers with BeforeAn
     probe1 expectMessage X()
     probe2 expectMessage X()
 
-  it should "support updating its number of boid actors" in:
+  "Updating the boid number" should "introduce new boids" in:
     val receptionist = genReceptionistActor
     val probe = testKit.createTestProbe[ActorReceptionistResponses]()
 
@@ -120,3 +121,20 @@ class BoidActorsReceptionistTest extends AnyFlatSpec with Matchers with BeforeAn
       case Response(actors) =>
         actors.size shouldBe 3
         actors.map(_._1) should contain theSameElementsAs List("0", "1", "2")
+
+  it should "prompt exceeding boids to unsubscribe" in:
+    val receptionist = genReceptionistActor
+    val realBoid = genBoidActor(receptionist, 0)
+    val fakeBoid = genBoidProbe
+
+    receptionist ! Register("0", realBoid)
+    receptionist ! Register("1", fakeBoid.ref)
+
+    receptionist ! UpdateBoidNumber(0)
+    fakeBoid.expectMessage(StopBoid)
+
+    val probe = testKit.createTestProbe[ActorReceptionistResponses]()
+
+    receptionist ! GetActors("*", probe.ref)
+
+    probe.expectMessage(Response(List.empty))
