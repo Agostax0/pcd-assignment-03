@@ -10,10 +10,12 @@ import it.unibo.pcd.view.BoidsViewMessages
 
 import java.awt.{Color, Dimension, Graphics2D}
 import javax.swing.BorderFactory
+import scala.concurrent.Future
 import scala.language.postfixOps
 import scala.swing.*
 import scala.swing.Swing.onEDT
 import scala.swing.event.*
+import scala.util.Success
 
 sealed trait BoidsViewMessages
 object BoidsViewMessages:
@@ -38,9 +40,16 @@ object ActorBoidsView:
       val callBacks: (ActorRef[BoidsControllerMessages]) => Unit =
         ref =>
           view.StartStopCallBack = isRunning =>
-            if isRunning then ref ! BoidsControllerMessages.Start
-            else ref ! BoidsControllerMessages.Stop
-          view.ResetCallBack = () => ref ! BoidsControllerMessages.Reset
+            context.pipeToSelf(Future.successful(isRunning)) {
+              case Success(true) => Start
+              case Success(false) => Stop
+              case scala.util.Failure(_) => Stop
+            }
+          view.ResetCallBack = () =>
+            context.pipeToSelf(Future.successful(null)) {
+              case Success(value) => Reset
+              case scala.util.Failure(_) => Stop
+            }
           view.ParametersCallBack = (separation, alignment, cohesion) =>
             ref ! BoidsControllerMessages.UpdateParameters(separation, alignment, cohesion)
           view.BoidsCallBack = count => ref ! BoidsControllerMessages.UpdateNumberOfBoids(count)

@@ -6,7 +6,8 @@ import akka.actor.typed.receptionist.{Receptionist, ServiceKey}
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, ActorSystem, Behavior}
 import it.unibo.pcd.model.Boid.Boid
-import it.unibo.pcd.view.BoidsViewMessages
+import it.unibo.pcd.model.{BoidModelActor, BoidModelMessages}
+import it.unibo.pcd.view.{ActorBoidsView, BoidsViewMessages}
 
 import scala.concurrent.duration.DurationInt
 
@@ -24,7 +25,7 @@ object BoidsControllerMessages:
 
 object BoidsController:
   def apply(
-      // TODO model: ActorRef[BoidsModelMessages],
+      model: ActorRef[BoidModelMessages],
       view: ActorRef[BoidsViewMessages],
       isRunning: Boolean = false
   ): Behavior[BoidsControllerMessages] =
@@ -76,8 +77,8 @@ object BoidsController:
 object Root:
   def apply(): Behavior[Nothing] =
     Behaviors.setup: context =>
-      //  val model: ActorRef[BoidsModelMessages] = context.spawn(ActorBoidsModel(), "model")
-      //  val view: ActorRef[BoidsViewMessages] = context.spawn(ActorBoidsView(), "view")
+      val model: ActorRef[BoidModelMessages] = context.spawn(BoidModelActor(), "model")
+      val view: ActorRef[BoidsViewMessages] = context.spawn(ActorBoidsView(), "view")
       //  val controller = context.spawn(BoidsController(model, view, false), "controller")
 
       //  model ! BoidsModelMessages.UpdateDimensions(800, 600)
