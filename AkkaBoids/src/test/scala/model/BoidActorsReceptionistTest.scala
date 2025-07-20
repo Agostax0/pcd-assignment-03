@@ -1,13 +1,16 @@
 package it.unibo.pcd
+package model
 
-import org.scalactic.Prettifier.default
+import ActorReceptionistMessages.*
+import ActorReceptionistResponses.Response
+
+import BoidActor.BoidActorMessages
+import BoidActor.BoidActorMessages.StopBoid
 import akka.actor.testkit.typed.scaladsl.{ActorTestKit, TestProbe}
 import akka.actor.typed.ActorRef
 import akka.actor.typed.scaladsl.Behaviors
-import it.unibo.pcd.ActorReceptionistMessages.*
-import it.unibo.pcd.ActorReceptionistResponses.Response
-import it.unibo.pcd.BoidActor.BoidActorMessages
-import it.unibo.pcd.BoidActor.BoidActorMessages.StopBoid
+import it.unibo.pcd.ActorReceptionistMessages
+import org.scalactic.Prettifier.default
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.funsuite.AnyFunSuiteLike
@@ -109,7 +112,7 @@ class BoidActorsReceptionistTest extends AnyFlatSpec with Matchers with BeforeAn
     probe1 expectMessage X()
     probe2 expectMessage X()
 
-  "Updating the boid number" should "introduce new boids" in:
+  "Updating the boid number" should "introduce new boids from none" in:
     val receptionist = genReceptionistActor
     val probe = testKit.createTestProbe[ActorReceptionistResponses]()
 
@@ -121,6 +124,22 @@ class BoidActorsReceptionistTest extends AnyFlatSpec with Matchers with BeforeAn
       case Response(actors) =>
         actors.size shouldBe 3
         actors.map(_._1) should contain theSameElementsAs List("0", "1", "2")
+
+  it should "introduce new boids from already existing" in:
+    val receptionist = genReceptionistActor
+    val boid1 = genBoidActor(receptionist, 1)
+    val boid2 = genBoidActor(receptionist, 2)
+
+    receptionist ! UpdateBoidNumber(5)
+
+    val probe = testKit.createTestProbe[ActorReceptionistResponses]()
+
+    receptionist ! GetActors("*", probe.ref)
+
+    probe.receiveMessage() match
+      case Response(actors) =>
+        actors should have size 5
+
 
   it should "prompt exceeding boids to unsubscribe" in:
     val receptionist = genReceptionistActor

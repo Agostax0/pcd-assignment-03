@@ -1,6 +1,5 @@
 package it.unibo.pcd
 
-
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
 import it.unibo.pcd.model.BoidActor.BoidActorMessages
@@ -51,8 +50,7 @@ object BoidActorsReceptionist:
             context.log.info(s"Updating boid number to $n, current size is $dbSize")
             dbSize match
               case size if size > n =>
-                // TODO fix
-                val toRemove = db.drop(size - n)
+                val toRemove = db.takeRight(size - n)
                 toRemove.foreach { case (name, ref) =>
                   ref ! StopBoid
                 }

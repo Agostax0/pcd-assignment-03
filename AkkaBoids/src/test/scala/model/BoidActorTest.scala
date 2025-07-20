@@ -1,16 +1,17 @@
 package it.unibo.pcd
+package model
+
+import ActorReceptionistMessages.{Register, RelayAll, RelayTo, Unregister}
+import BoidActor.BoidActorMessages
+import BoidActor.BoidActorMessages.*
 
 import akka.actor.testkit.typed.scaladsl.{ActorTestKit, TestProbe}
-import akka.actor.testkit.typed.scaladsl.{ActorTestKit, TestProbe}
 import akka.actor.typed.ActorRef
-import it.unibo.pcd.ActorReceptionistMessages.{Register, RelayAll, RelayTo, Unregister}
-import it.unibo.pcd.BoidActor.BoidActorMessages
-import it.unibo.pcd.BoidActor.BoidActorMessages.{NeighborRequest, NeighborStatus, ResetBoid, StopBoid, UpdateModel}
-import org.scalatest.{BeforeAndAfterAll, durations}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.funsuite.AnyFunSuite
 import org.scalatest.matchers.should
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.{BeforeAndAfterAll, durations}
 
 import scala.concurrent.duration.FiniteDuration
 import scala.language.postfixOps

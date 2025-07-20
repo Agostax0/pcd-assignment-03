@@ -1,4 +1,5 @@
 package it.unibo.pcd
+package model
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers.{contain, have, not}
