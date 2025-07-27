@@ -6,6 +6,7 @@ import BoidsViewMessages.*
 import akka.actor.typed.{ActorRef, Behavior, Props}
 import akka.actor.typed.scaladsl.Behaviors
 import it.unibo.pcd.controller.BoidsControllerMessages
+import it.unibo.pcd.model.BoidsModel
 import it.unibo.pcd.view.BoidsViewMessages
 
 import java.awt.{Color, Dimension, Graphics2D}
@@ -23,9 +24,8 @@ object BoidsViewMessages:
   case object Start extends BoidsViewMessages
   case object Stop extends BoidsViewMessages
   case object Reset extends BoidsViewMessages
-  case class UpdateParameters(separation: Double, alignment: Double, cohesion: Double) extends BoidsViewMessages
+  case class UpdateModel(model: BoidsModel) extends BoidsViewMessages
   case class UpdateBoids(count: Int) extends BoidsViewMessages
-  case class UpdateDimensions(width: Double, height: Double) extends BoidsViewMessages
   case class SetVisibleView(ref: ActorRef[BoidsControllerMessages]) extends BoidsViewMessages
 
 object ActorBoidsView:
@@ -37,31 +37,40 @@ object ActorBoidsView:
   ): Behavior[BoidsViewMessages] =
     Behaviors.setup { context =>
 
-      val callBacks: (ActorRef[BoidsControllerMessages]) => Unit =
-        ref =>
-          view.StartStopCallBack = isRunning =>
+      val callBacks: () => Unit = () =>
+        view.StartStopCallBack = isRunning =>
             context.pipeToSelf(Future.successful(isRunning)) {
               case Success(true) => Start
               case Success(false) => Stop
               case scala.util.Failure(_) => Stop
             }
-          view.ResetCallBack = () =>
+        view.ResetCallBack = () =>
             context.pipeToSelf(Future.successful(null)) {
               case Success(value) => Reset
               case scala.util.Failure(_) => Stop
             }
-          view.ParametersCallBack = (separation, alignment, cohesion) =>
-            ref ! BoidsControllerMessages.UpdateParameters(separation, alignment, cohesion)
-          view.BoidsCallBack = count => ref ! BoidsControllerMessages.UpdateNumberOfBoids(count)
-          view.UpdateDimensionsCallBack =
-            (width, height) => ref ! BoidsControllerMessages.UpdateDimensions(width, height)
+        view.ParametersCallBack = (separation, alignment, cohesion, width, height) =>
+            context.pipeToSelf(Future.successful(BoidsModel.localModel.copy(
+              separationWeight = separation,
+              alignmentWeight = alignment,
+              cohesionWeight = cohesion,
+              width = width,
+              height = height
+            ))) {
+              case Success(model) => UpdateModel(model)
+              case scala.util.Failure(_) => Stop
+            }
+        view.BoidsCallBack = count =>
+            context.pipeToSelf(Future.successful(count)){
+              case Success(value) => UpdateBoids(count)
+              case scala.util.Failure(_) => Stop
+            }
 
       Behaviors.receiveMessage:
         case SetVisibleView(ref) =>
           view.visible = true
-          callBacks(ref)
-          apply(view, boids, ref)
-          Behaviors.same
+          callBacks()
+          apply(view = view, controller = ref)
 
         case Render(boids) =>
           view.updateBoids(boids)
@@ -79,16 +88,12 @@ object ActorBoidsView:
           controller ! BoidsControllerMessages.Reset
           Behaviors.same
 
-        case UpdateParameters(separation, alignment, cohesion) =>
-          controller ! BoidsControllerMessages.UpdateParameters(separation, alignment, cohesion)
-          Behaviors.same
-
         case UpdateBoids(count) =>
           controller ! BoidsControllerMessages.UpdateNumberOfBoids(count)
           Behaviors.same
 
-        case UpdateDimensions(width, height) =>
-          controller ! BoidsControllerMessages.UpdateDimensions(width, height)
+        case UpdateModel(model) =>
+          controller ! BoidsControllerMessages.UpdateModel(model)
           Behaviors.same
     }
 
@@ -187,7 +192,7 @@ sealed class BoidsView extends MainFrame:
 
   var StartStopCallBack: (Boolean) => Unit = x => {}
   var ResetCallBack: () => Unit = () => {}
-  var ParametersCallBack: (Double, Double, Double) => Unit = (x, y, z) => {}
+  var ParametersCallBack: (Double, Double, Double, Int, Int) => Unit = (a, b, c, d, e) => {}
   var BoidsCallBack: (Int) => Unit = n => {}
   var UpdateDimensionsCallBack: (Double, Double) => Unit = (x, y) => {}
 
@@ -204,22 +209,20 @@ sealed class BoidsView extends MainFrame:
 
     case ValueChanged(`separationSlider`) =>
       val weight = separationSlider.value / 100.0
-      ParametersCallBack(weight, alignmentSlider.value / 100.0, cohesionSlider.value / 100.0)
+      ParametersCallBack(weight, alignmentSlider.value / 100.0, cohesionSlider.value / 100.0, size.width, size.height)
 
     case ValueChanged(`alignmentSlider`) =>
       val weight = alignmentSlider.value / 100.0
-      ParametersCallBack(separationSlider.value / 100.0, weight, cohesionSlider.value / 100.0)
+      ParametersCallBack(separationSlider.value / 100.0, weight, cohesionSlider.value / 100.0, size.width, size.height)
 
     case ValueChanged(`cohesionSlider`) =>
       val weight = cohesionSlider.value / 100.0
-      ParametersCallBack(separationSlider.value / 100.0, alignmentSlider.value / 100.0, weight)
+      ParametersCallBack(separationSlider.value / 100.0, alignmentSlider.value / 100.0, weight, size.width, size.height)
 
     case ValueChanged(`boidsCountSlider`) =>
       val count = boidsCountSlider.value
       BoidsCallBack(count)
 
-    case event: event.UIElementResized =>
-      UpdateDimensionsCallBack(size.width, size.height)
   }
 
   override def closeOperation(): Unit =

@@ -1,12 +1,13 @@
 package it.unibo.pcd
 package controller
 
-import BoidsControllerMessages.GetData
+import BoidsControllerMessages.{GetData, UpdateNumberOfBoids}
 import akka.actor.typed.receptionist.{Receptionist, ServiceKey}
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, ActorSystem, Behavior}
 import it.unibo.pcd.model.Boid.Boid
-import it.unibo.pcd.model.{BoidModelActor, BoidModelMessages}
+import it.unibo.pcd.model.{BoidModelActor, BoidModelMessages, BoidsModel}
+import it.unibo.pcd.view.BoidsViewMessages.UpdateModel
 import it.unibo.pcd.view.{ActorBoidsView, BoidsViewMessages}
 
 import scala.concurrent.duration.DurationInt
@@ -14,10 +15,8 @@ import scala.concurrent.duration.DurationInt
 sealed trait BoidsControllerMessages
 object BoidsControllerMessages:
   case class GetData(boids: Seq[Boid]) extends BoidsControllerMessages
-  case class UpdateDimensions(width: Double, height: Double) extends BoidsControllerMessages
   case class UpdateNumberOfBoids(n: Int) extends BoidsControllerMessages
-  case class UpdateParameters(separationWeight: Double, alignmentWeight: Double, cohesionWeight: Double)
-      extends BoidsControllerMessages
+  case class UpdateModel(model: BoidsModel) extends BoidsControllerMessages
   case object Start extends BoidsControllerMessages
   case object Stop extends BoidsControllerMessages
   case object Reset extends BoidsControllerMessages
@@ -44,30 +43,27 @@ object BoidsController:
                 300.millis
               )
             Behaviors.same
-          case UpdateDimensions(width, height) =>
-            // model ! BoidsModelMessages.UpdateDimensions(width, height)
-            Behaviors.same
           case UpdateNumberOfBoids(n) =>
-            // model ! BoidsModelMessages.UpdateNumberOfBoids(n)
+            model ! BoidModelMessages.UpdateBoidNumber(n)
             Behaviors.same
-          case UpdateParameters(separationWeight, alignmentWeight, cohesionWeight) =>
-            // model ! BoidsModelMessages.UpdateParameters(separationWeight, alignmentWeight, cohesionWeight)
+
+          case BoidsControllerMessages.UpdateModel(newModel) =>
+            model ! BoidModelMessages.UpdateModel(newModel)
             Behaviors.same
+
           case Start =>
-            // model ! BoidsModelMessages.Step(context.self)
-            // apply(model, view, true)
-            Behaviors.same
+            model ! BoidModelMessages.Step
+            apply(model, view, true)
 
           case Stop =>
             timer.cancel(timerKey)
-            //          apply(model, view, false)
+            apply(model, view, false)
             Behaviors.same
 
           case Reset =>
             timer.cancel(timerKey)
-//            model ! BoidsModelMessages.Reset(context.self)
-//            apply(model, view, false)
-            Behaviors.same
+            model ! BoidModelMessages.Reset
+            apply(model, view, false)
 
           case SetVisibleView =>
             view ! BoidsViewMessages.SetVisibleView(context.self)
@@ -79,11 +75,11 @@ object Root:
     Behaviors.setup: context =>
       val model: ActorRef[BoidModelMessages] = context.spawn(BoidModelActor(), "model")
       val view: ActorRef[BoidsViewMessages] = context.spawn(ActorBoidsView(), "view")
-      //  val controller = context.spawn(BoidsController(model, view, false), "controller")
+      val controller: ActorRef[BoidsControllerMessages] = context.spawn(BoidsController(model, view), "controller")
 
-      //  model ! BoidsModelMessages.UpdateDimensions(800, 600)
-      //  model ! BoidsModelMessages.UpdateNumberOfBoids(200)
-      //  controller ! BoidsControllerMessages.SetVisibleView
+      model ! BoidModelMessages.UpdateBoidNumber(200)
+      model ! BoidModelMessages.UpdateModel(BoidsModel.localModel.copy(width = 800, height = 600))
+      controller ! BoidsControllerMessages.SetVisibleView
 
       Behaviors.empty
 
