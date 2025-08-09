@@ -2,7 +2,7 @@ package it.unibo.pcd
 package model
 
 import Boid.Boid
-import akka.actor.typed.Behavior
+import akka.actor.typed.{ActorRef, Behavior}
 import akka.actor.typed.scaladsl.Behaviors
 import it.unibo.pcd.ActorReceptionistMessages
 import it.unibo.pcd.ActorReceptionistMessages.RelayAll
@@ -94,25 +94,27 @@ object BoidModelMessages:
   case object Step extends BoidModelMessages
   case object Reset extends BoidModelMessages
 object BoidModelActor:
+  var receptionist: Option[ActorRef[ActorReceptionistMessages]] = None
   def apply(
       positions: List[Position] = List.empty
   ): Behavior[BoidModelMessages] =
     Behaviors.setup { context =>
-      val receptionist = context.spawn(BoidActorsReceptionist(context.self), "boidReceptionist")
+      if receptionist.isEmpty then
+        receptionist = Option.apply(context.spawn(BoidActorsReceptionist(context.self), "boidReceptionist"))
 
       import BoidModelMessages.*
       Behaviors.receiveMessage {
         case UpdateBoidNumber(n) =>
-          receptionist ! ActorReceptionistMessages.UpdateBoidNumber(n)
+          receptionist.get ! ActorReceptionistMessages.UpdateBoidNumber(n)
           apply(List.empty)
         case UpdateModel(model) =>
-          receptionist ! RelayAll(BoidActorMessages.UpdateModel(model))
+          receptionist.get ! RelayAll(BoidActorMessages.UpdateModel(model))
           apply(List.empty)
         case Step =>
-          receptionist ! ActorReceptionistMessages.SendPositions
+          receptionist.get ! ActorReceptionistMessages.SendPositions
           apply(List.empty)
         case Reset =>
-          receptionist ! ActorReceptionistMessages.RelayAll(BoidActorMessages.ResetBoid)
+          receptionist.get ! ActorReceptionistMessages.RelayAll(BoidActorMessages.ResetBoid)
           Behaviors.same
         case ReceivePosition(pos, size) =>
           if positions.size < size then apply(positions :+ pos)
