@@ -6,15 +6,15 @@ import akka.actor.typed.receptionist.{Receptionist, ServiceKey}
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, ActorSystem, Behavior}
 import it.unibo.pcd.model.Boid.Boid
-import it.unibo.pcd.model.{BoidModelActor, BoidModelMessages, BoidsModel}
-import it.unibo.pcd.view.BoidsViewMessages.UpdateModel
+import it.unibo.pcd.model.{BoidModelActor, BoidModelMessages, BoidsModel, Position}
+import it.unibo.pcd.view.BoidsViewMessages.{UpdateBoids, UpdateModel}
 import it.unibo.pcd.view.{ActorBoidsView, BoidsViewMessages}
 
 import scala.concurrent.duration.DurationInt
 
 sealed trait BoidsControllerMessages
 object BoidsControllerMessages:
-  case class GetData(boids: Seq[Boid]) extends BoidsControllerMessages
+  case class GetData(positions: List[Position]) extends BoidsControllerMessages
   case class UpdateNumberOfBoids(n: Int) extends BoidsControllerMessages
   case class UpdateModel(model: BoidsModel) extends BoidsControllerMessages
   case object Start extends BoidsControllerMessages
@@ -33,41 +33,43 @@ object BoidsController:
         val timerKey = "updateTimer"
 
         import BoidsControllerMessages.*
-        Behaviors.receiveMessage {
-          case GetData(boids) =>
-            view ! BoidsViewMessages.Render(boids)
-            if isRunning then
-              timer.startSingleTimer(
-                timerKey,
-                Start,
-                300.millis
-              )
-            Behaviors.same
-          case UpdateNumberOfBoids(n) =>
-            model ! BoidModelMessages.UpdateBoidNumber(n)
-            Behaviors.same
+        Behaviors.receiveMessage { msg =>
+          context.log.info(s"Controller msg: $msg")
+          msg match
+            case GetData(positions) =>
+              view ! BoidsViewMessages.Render(positions)
+              if isRunning then
+                timer.startSingleTimer(
+                  timerKey,
+                  Start,
+                  300.millis
+                )
+              Behaviors.same
+            case UpdateNumberOfBoids(n) =>
+              model ! BoidModelMessages.UpdateBoidNumber(n)
+              Behaviors.same
 
-          case BoidsControllerMessages.UpdateModel(newModel) =>
-            model ! BoidModelMessages.UpdateModel(newModel)
-            Behaviors.same
+            case BoidsControllerMessages.UpdateModel(newModel) =>
+              model ! BoidModelMessages.UpdateModel(newModel)
+              Behaviors.same
 
-          case Start =>
-            model ! BoidModelMessages.Step
-            apply(model, view, true)
+            case Start =>
+              model ! BoidModelMessages.Step(context.self)
+              apply(model, view, true)
 
-          case Stop =>
-            timer.cancel(timerKey)
-            apply(model, view, false)
-            Behaviors.same
+            case Stop =>
+              timer.cancel(timerKey)
+              apply(model, view, false)
+              Behaviors.same
 
-          case Reset =>
-            timer.cancel(timerKey)
-            model ! BoidModelMessages.Reset
-            apply(model, view, false)
+            case Reset =>
+              timer.cancel(timerKey)
+              model ! BoidModelMessages.Reset
+              apply(model, view, false)
 
-          case SetVisibleView =>
-            view ! BoidsViewMessages.SetVisibleView(context.self)
-            Behaviors.same
+            case SetVisibleView =>
+              view ! BoidsViewMessages.SetVisibleView(context.self)
+              Behaviors.same
         }
 
 object Root:
@@ -77,7 +79,7 @@ object Root:
       val view: ActorRef[BoidsViewMessages] = context.spawn(ActorBoidsView(), "view")
       val controller: ActorRef[BoidsControllerMessages] = context.spawn(BoidsController(model, view), "controller")
 
-      model ! BoidModelMessages.UpdateBoidNumber(200)
+      model ! BoidModelMessages.UpdateBoidNumber(3)
       model ! BoidModelMessages.UpdateModel(BoidsModel.localModel.copy(width = 800, height = 600))
       controller ! BoidsControllerMessages.SetVisibleView
 

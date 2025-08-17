@@ -9,7 +9,7 @@ import BoidActor.BoidActorMessages.StopBoid
 import akka.actor.testkit.typed.scaladsl.{ActorTestKit, TestProbe}
 import akka.actor.typed.ActorRef
 import akka.actor.typed.scaladsl.Behaviors
-import it.unibo.pcd.ActorReceptionistMessages
+import it.unibo.pcd.model.ActorReceptionistMessages
 import org.scalactic.Prettifier.default
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AnyFlatSpec

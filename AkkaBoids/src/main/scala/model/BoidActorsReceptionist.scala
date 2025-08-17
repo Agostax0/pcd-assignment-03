@@ -1,11 +1,14 @@
 package it.unibo.pcd
+package model
+
+import model.BoidActor.BoidActorMessages
+import model.BoidActor.BoidActorMessages.{ResetBoid, SendPosition, StopBoid}
+import model.BoidModelMessages.ReceivePosition
 
 import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.{ActorRef, Behavior}
-import it.unibo.pcd.model.BoidActor.BoidActorMessages
-import it.unibo.pcd.model.BoidActor.BoidActorMessages.{SendPosition, StopBoid}
-import it.unibo.pcd.model.BoidModelMessages.ReceivePosition
-import it.unibo.pcd.model.{BoidActor, BoidModelMessages}
+
+import scala.concurrent.Future
 
 sealed trait ActorReceptionistMessages
 object ActorReceptionistMessages:
@@ -47,7 +50,6 @@ object BoidActorsReceptionist:
 
           case UpdateBoidNumber(n) =>
             val dbSize = db.size
-            context.log.info(s"Updating boid number to $n, current size is $dbSize")
             dbSize match
               case size if size > n =>
                 val toRemove = db.takeRight(size - n)
@@ -58,8 +60,19 @@ object BoidActorsReceptionist:
               case size if size < n =>
                 val newBoids = (db.size until n)
                   .map(i =>
-                    (i.toString, context.spawn(BoidActor(receptionist = context.self, myIndex = i), i.toString))
+                    (
+                      i.toString,
+                      context.spawnAnonymous(
+                        BoidActor(receptionist = context.self, myIndex = i)
+                      )
+                    )
                   )
+
+                context.pipeToSelf(Future.successful(null)) {
+                  case scala.util.Success(_) => RelayAll(ResetBoid)
+                  case scala.util.Failure(_) => ???
+                }
+
                 apply(model, db ++ newBoids.toList)
               case _ => Behaviors.same
       case msg: Control =>
