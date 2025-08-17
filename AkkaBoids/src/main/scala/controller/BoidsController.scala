@@ -79,7 +79,7 @@ object Root:
       val view: ActorRef[BoidsViewMessages] = context.spawn(ActorBoidsView(), "view")
       val controller: ActorRef[BoidsControllerMessages] = context.spawn(BoidsController(model, view), "controller")
 
-      model ! BoidModelMessages.UpdateBoidNumber(2)
+      model ! BoidModelMessages.UpdateBoidNumber(3)
       model ! BoidModelMessages.UpdateModel(BoidsModel.localModel.copy(width = 800, height = 600))
       controller ! BoidsControllerMessages.SetVisibleView
 

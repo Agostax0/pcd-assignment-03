@@ -34,7 +34,7 @@ object BoidActor:
       model: BoidsModel = BoidsModel.localModel
   ): Behavior[BoidActorMessages] =
     Behaviors.receive: (context, msg) =>
-      val parameters = BoidParameters(myIndex, boid, otherBoidsSeen)
+      val parameters = BoidParameters(myIndex, otherBoidsSeen)
       msg match
         case SendPosition =>
           receptionist ! RelayTo("model", ReceivePosition(boid.position, -1))
@@ -48,22 +48,21 @@ object BoidActor:
           receptionist ! RelayAll(NeighborStatus(boid.position, boid.velocity, myIndex, n))
           Behaviors.same
         case NeighborStatus(pos, vel, index, size) =>
-          if otherBoidsSeen == size - 1 then
-            val updatedBoid = model.update(boid, neighbors)
-            receptionist ! RelayTo("model", ReceivePosition(updatedBoid.position, -1))
-            apply(receptionist, myIndex, boid = updatedBoid, neighbors = List.empty, model = model)
+          if myIndex == index then Behaviors.same
           else
             var newNeighbors = neighbors
-            if myIndex != index && boid.position.distance(pos) < model.perceptionRadius then
-              newNeighbors = newNeighbors :+ Boid(pos, vel)
-            apply(
-              receptionist,
-              myIndex,
-              boid,
-              otherBoidsSeen = if myIndex != index then otherBoidsSeen + 1 else otherBoidsSeen,
-              neighbors = newNeighbors,
-              model = model
-            )
+            val newOtherBoidsSeen: Int = otherBoidsSeen + 1
+
+            if newOtherBoidsSeen == size - 1 then
+              context.log.info(s"Boid $myIndex has seen all other boids")
+              val updatedBoid = model.update(boid, neighbors)
+              receptionist ! RelayTo("model", ReceivePosition(updatedBoid.position, -1))
+              apply(receptionist, myIndex, boid = updatedBoid, neighbors = List.empty, model = model)
+            else
+              if boid.position.distance(pos) < model.perceptionRadius then newNeighbors = newNeighbors :+ Boid(pos, vel)
+              apply(
+                receptionist, myIndex, boid, otherBoidsSeen = newOtherBoidsSeen, neighbors = newNeighbors, model = model
+              )
         case _ => Behaviors.same
 
-  private case class BoidParameters(myIndex: Int, boid: Boid, neighborsSeen: Int)
+  private case class BoidParameters(myIndex: Int, /*boid: Boid*/ neighborsSeen: Int)

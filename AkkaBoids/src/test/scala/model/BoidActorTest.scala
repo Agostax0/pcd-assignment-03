@@ -1,7 +1,7 @@
 package it.unibo.pcd
 package model
 
-import ActorReceptionistMessages.{Register, RelayAll, RelayTo, Unregister}
+import ActorReceptionistMessages.{Register, RelayAll, RelayTo, SendPositions, Unregister}
 import BoidActor.BoidActorMessages
 import BoidActor.BoidActorMessages.*
 import akka.actor.testkit.typed.scaladsl.{ActorTestKit, TestProbe}
@@ -15,6 +15,7 @@ import org.scalatest.matchers.should
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.{BeforeAndAfterAll, durations}
 
+import java.util.concurrent.TimeUnit
 import scala.concurrent.duration.FiniteDuration
 import scala.language.postfixOps
 
@@ -89,14 +90,32 @@ class BoidActorTest extends AnyFlatSpec with BeforeAndAfterAll with should.Match
     boid1 ! NeighborStatus(Position.random, Velocity.random, notBoid1Index, 3)
     boid1 ! NeighborStatus(Position.random, Velocity.random, notBoid1Index, 3)
     boid1 ! NeighborStatus(Position.random, Velocity.random, notBoid1Index, 3)
-
-
-
     val msg = modelProbe.receiveMessage()
 
     msg match
-      case ReceivePosition(_,_) => succeed
+      case ReceivePosition(_, _) => succeed
 
+  it should "allow each boid to send to the model their position" in:
+    val modelProbe = testKit.createTestProbe[BoidModelMessages]()
+    val myReceptionist = testKit.spawn[ActorReceptionistMessages](BoidActorsReceptionist(modelProbe.ref).narrow)
+
+    val boid1 = genBoidActor(myReceptionist.ref, 1)
+    boid1 ! ResetBoid
+    val boid2 = genBoidActor(myReceptionist.ref, 2)
+    boid2 ! ResetBoid
+    val boid3 = genBoidActor(myReceptionist.ref, 3)
+    boid3 ! ResetBoid
+
+    myReceptionist ! ActorReceptionistMessages.Register(1.toString, boid1)
+    myReceptionist ! ActorReceptionistMessages.Register(2.toString, boid2)
+    myReceptionist ! ActorReceptionistMessages.Register(3.toString, boid3)
+
+    // TODO non ricevo tutte le positzioni di tutti i boid
+    myReceptionist ! SendPositions
+//
+//    modelProbe.expectMessageType[ReceivePosition]
+//    modelProbe.expectMessageType[ReceivePosition]
+//    modelProbe.expectMessageType[ReceivePosition]
 
   it should "not send any message when receiving itself" in:
     val modelProbe = testKit.createTestProbe[BoidModelMessages]()
