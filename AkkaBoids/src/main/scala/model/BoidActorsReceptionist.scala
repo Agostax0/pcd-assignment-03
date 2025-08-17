@@ -2,7 +2,7 @@ package it.unibo.pcd
 package model
 
 import model.BoidActor.BoidActorMessages
-import model.BoidActor.BoidActorMessages.{ResetBoid, SendPosition, StopBoid}
+import model.BoidActor.BoidActorMessages.{NeighborRequest, NeighborStatus, ResetBoid, SendPosition, StopBoid}
 import model.BoidModelMessages.ReceivePosition
 
 import akka.actor.typed.scaladsl.Behaviors
@@ -36,62 +36,69 @@ object BoidActorsReceptionist:
   ): Behavior[ActorReceptionistMessages] = Behaviors.setup { context =>
     import ActorReceptionistMessages.*
     import ActorReceptionistResponses.*
-    Behaviors.receiveMessage {
-      case msg: FromBoid =>
-        msg match
-          case Register(name, ref) =>
-            apply(model, db :+ (name, ref))
-          case Unregister(name) => apply(model, db.filterNot(_._1 == name))
-      case msg: FromModel =>
-        msg match
-          case SendPositions =>
-            context.self ! RelayAll(SendPosition)
-            Behaviors.same
+    Behaviors.receiveMessage { msg =>
+      msg match
 
-          case UpdateBoidNumber(n) =>
-            val dbSize = db.size
-            dbSize match
-              case size if size > n =>
-                val toRemove = db.takeRight(size - n)
-                toRemove.foreach { case (name, ref) =>
-                  ref ! StopBoid
-                }
-                apply(model, db.take(n))
-              case size if size < n =>
-                val newBoids = (db.size until n)
-                  .map(i =>
-                    (
-                      i.toString,
-                      context.spawnAnonymous(
-                        BoidActor(receptionist = context.self, myIndex = i)
+        case msg: FromBoid =>
+          msg match
+            case Register(name, ref) =>
+              apply(model, db :+ (name, ref))
+            case Unregister(name) => apply(model, db.filterNot(_._1 == name))
+        case msg: FromModel =>
+          msg match
+            case SendPositions =>
+              context.self ! ActorReceptionistMessages.RelayAll(NeighborRequest(db.size))
+
+//            context.pipeToSelf(Future.successful(null)) {
+//              case scala.util.Success(_) => RelayAll(NeighborRequest(db.size))
+//              case scala.util.Failure(_) => ???
+//            }
+              Behaviors.same
+
+            case UpdateBoidNumber(n) =>
+              val dbSize = db.size
+              dbSize match
+                case size if size > n =>
+                  val toRemove = db.takeRight(size - n)
+                  toRemove.foreach { case (name, ref) =>
+                    ref ! StopBoid
+                  }
+                  apply(model, db.take(n))
+                case size if size < n =>
+                  val newBoids = (db.size until n)
+                    .map(i =>
+                      (
+                        i.toString,
+                        context.spawnAnonymous(
+                          BoidActor(receptionist = context.self, myIndex = i)
+                        )
                       )
                     )
-                  )
 
-                context.pipeToSelf(Future.successful(null)) {
-                  case scala.util.Success(_) => RelayAll(ResetBoid)
-                  case scala.util.Failure(_) => ???
-                }
+                  context.pipeToSelf(Future.successful(null)) {
+                    case scala.util.Success(_) => RelayAll(ResetBoid)
+                    case scala.util.Failure(_) => ???
+                  }
 
-                apply(model, db ++ newBoids.toList)
-              case _ => Behaviors.same
-      case msg: Control =>
-        msg match
-          case GetActors(nameShared, replyTo) =>
-            if nameShared == "*" then replyTo ! Response(db)
-            else
-              val res = db.filter(_._1 equals nameShared)
-              replyTo ! Response(res)
-            Behaviors.same
-          case RelayTo(name, msg) =>
-            msg match
-              case forBoid: BoidActorMessages =>
-                db.filter(_._1 == name).map(_._2).foreach(ref => ref ! forBoid)
-              case forModel: ReceivePosition =>
-                model ! ReceivePosition(forModel.pos, db.size)
-            Behaviors.same
-          case RelayAll(toShare) =>
-            db.map(_._2).foreach(ref => ref ! toShare)
-            Behaviors.same
+                  apply(model, db ++ newBoids.toList)
+                case _ => Behaviors.same
+        case msg: Control =>
+          msg match
+            case GetActors(nameShared, replyTo) =>
+              if nameShared == "*" then replyTo ! Response(db)
+              else
+                val res = db.filter(_._1 equals nameShared)
+                replyTo ! Response(res)
+              Behaviors.same
+            case RelayTo(name, msg) =>
+              msg match
+                case forBoid: BoidActorMessages =>
+                  db.filter(_._1 == name).map(_._2).foreach(ref => ref ! forBoid)
+                case forModel: ReceivePosition =>
+                  model ! ReceivePosition(forModel.pos, db.size)
+              Behaviors.same
+            case RelayAll(toShare) =>
+              db.map(_._2).foreach(ref => ref ! toShare)
+              Behaviors.same
     }
   }

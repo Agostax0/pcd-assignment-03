@@ -1,6 +1,7 @@
 package it.unibo.pcd
 package model
 
+import it.unibo.pcd.model.Boid.Boid
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.must.Matchers.{must, mustBe}
 import org.scalatest.matchers.should.Matchers
@@ -50,3 +51,26 @@ class BoidTest extends AnyFlatSpec with Matchers:
     import math.sqrt
     v2.x should be(1 / sqrt(2))
     v2.y should be(1 / sqrt(2))
+
+  "A boid" should "move when found near another" in:
+    val boid1: Boid = Boid(Position.zero, Velocity.zero)
+    val boid2: Boid = Boid(Position.zero, Velocity.zero)
+
+    val model = BoidsModel.localModel
+
+    val newBoid1 = model.update(boid1, List(boid2))
+    val newBoid2 = model.update(boid2, List(boid1))
+
+    boid1 should not equals newBoid1
+    boid2 should not equals newBoid2
+
+  it should "move correctly when multiple are nearby" in:
+    val boid1: Boid = Boid(Position.one, Velocity.one)
+
+    val model = BoidsModel.localModel
+
+    val randomBoid: () => Boid = () => Boid(Position.random, Velocity.random)
+
+    val newBoid1 = model.update(boid1, List(randomBoid(), randomBoid(), randomBoid()))
+
+    boid1 should not equals newBoid1

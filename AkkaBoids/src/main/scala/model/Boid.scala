@@ -1,8 +1,13 @@
 package it.unibo.pcd
 package model
 
+import it.unibo.pcd.model.Boid.Boid
+
+import scala.annotation.targetName
+
 case class Position(x: Double, y: Double):
   private def op(other: Position, op: (Position, Position) => Position): Position = op(this, other)
+  @targetName("sum")
   def +(other: Position): Position = op(other, (a, b) => Position(a.x + b.x, a.y + b.y))
   def -(other: Position): Position = op(other, (a, b) => Position(a.x - b.x, a.y - b.y))
   def *(scalar: Double): Position = Position(x * scalar, y * scalar)
@@ -10,9 +15,12 @@ case class Position(x: Double, y: Double):
   def distance(other: Position): Double = math.sqrt((other.x - x) * (other.x - x) + (other.y - y) * (other.y - y))
 object Position:
   def zero: Position = Position(0, 0)
+  def one: Position = Position(1, 1)
+  def random: Position = Position(math.random(), math.random())
   def apply(p: (Int, Int)): Position = Position(p._1, p._2)
 
 case class Velocity(x: Double, y: Double):
+  @targetName("sum")
   def +(other: Velocity): Velocity = Velocity(x + other.x, y + other.y)
   def -(other: Velocity): Velocity = Velocity(x - other.x, y - other.y)
   def abs: Double = math.sqrt(x * x + y * y)
@@ -21,6 +29,8 @@ case class Velocity(x: Double, y: Double):
   def *(scalar: Double): Velocity = Velocity(x * scalar, y * scalar)
 object Velocity:
   def zero: Velocity = Velocity(0, 0)
+  def one: Velocity = Velocity(1, 1)
+  def random: Velocity = Velocity(math.random(), math.random())
   def apply(v: (Int, Int)): Velocity = Velocity(v._1, v._2)
 
 object Boid:

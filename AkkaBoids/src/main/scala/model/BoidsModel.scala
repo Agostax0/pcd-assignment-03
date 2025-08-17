@@ -22,16 +22,15 @@ sealed trait BoidsModel:
   val perceptionRadius: Double
   val avoidRadius: Double
 
-  val minX: Double = -width / 2
-  val maxX: Double = width / 2
-  val minY: Double = -height / 2
-  val maxY: Double = height / 2
+  val minX: Double = 0
+  val maxX: Double = width
+  val minY: Double = 0
+  val maxY: Double = height
 
   def reset: Boid =
     val random = scala.util.Random
     val pos = Position(random.between(minX, maxX), random.between(minY, maxY))
-    val vel =
-      Velocity(random.between(0, maxSpeed / 2), random.between(0, maxSpeed / 2)) - Velocity(maxSpeed / 4, maxSpeed / 4)
+    val vel = Velocity(random.between(0, maxSpeed / 2), random.between(0, maxSpeed / 2))
     Boid(pos, vel)
 
   def update(boid: Boid, neighbors: List[Boid]): Boid =
@@ -46,10 +45,10 @@ sealed trait BoidsModel:
 
     var pos = boid.position + Position(vel.x, vel.y)
 
-    if pos.x < minX then pos = pos + Position(width, 0)
-    if pos.x >= maxX then pos = pos - Position(width, 0)
-    if pos.y < minY then pos = pos + Position(0, height)
-    if pos.y >= minY then pos = pos - Position(0, height)
+    if pos.x < minX then pos = pos + Position(width / 2, 0)
+    if pos.x >= maxX then pos = pos - Position(width / 2, 0)
+    if pos.y < minY then pos = pos + Position(0, height / 2)
+    if pos.y >= minY then pos = pos - Position(0, height / 2)
 
     Boid(pos, vel)
 
@@ -74,7 +73,11 @@ sealed trait BoidsModel:
       position = boid.position - neighbor.position
     yield position
     if positions.isEmpty then Velocity.zero
-    else (positions.foldRight(Velocity.zero)((pos, vel) => Velocity(pos.x, pos.x) + vel) / positions.size).normalized
+    else
+      val positionsPlusVel = positions.foldRight(Velocity.zero)((pos, vel) => Velocity(pos.x, pos.x) + vel)
+      val positionPlusVelAvg = positionsPlusVel / positions.size
+      val positionPlusVelAvgNormalized = positionPlusVelAvg.normalized
+      positionPlusVelAvgNormalized
 object BoidsModel:
   def localModel: LocalModel = LocalModel()
 
@@ -108,7 +111,7 @@ object BoidModelActor:
 
       import BoidModelMessages.*
       Behaviors.receiveMessage { msg =>
-        // context.log.info(s"Model msg: $msg")
+        context.log.info(s"Model msg: $msg")
 
         msg match
           case UpdateBoidNumber(n) =>
