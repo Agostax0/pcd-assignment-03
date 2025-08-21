@@ -4,15 +4,14 @@ import it.unibo.pcd.model.BoidsModel;
 import it.unibo.pcd.model.Position;
 import it.unibo.pcd.model.Velocity;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class Boid {
+public class UpdateUtil {
 
     private Position pos;
     private Velocity vel;
 
-    public Boid(Position pos, Velocity vel) {
+    public UpdateUtil(Position pos, Velocity vel) {
     	this.pos = pos;
     	this.vel = vel;
     }
@@ -25,7 +24,7 @@ public class Boid {
     	return vel;
     }
     
-    public void update(BoidsModel model, List<Boid> nearbyBoids) {
+    public void update(BoidsModel model, List<UpdateUtil> nearbyBoids) {
 
     	/* change velocity vector according to separation, alignment, cohesion */
 
@@ -57,11 +56,11 @@ public class Boid {
         if (pos.y() >= model.maxY()) pos = pos.$plus(new Position(0, -model.height()));
     }
 
-    private Velocity calculateAlignment(List<Boid> nearbyBoids, BoidsModel model) {
+    private Velocity calculateAlignment(List<UpdateUtil> nearbyBoids, BoidsModel model) {
         double avgVx = 0;
         double avgVy = 0;
         if (nearbyBoids!= null && !nearbyBoids.isEmpty()) {
-	        for (Boid other : nearbyBoids) {
+	        for (UpdateUtil other : nearbyBoids) {
 	        	Velocity otherVel = other.getVel();
 	            avgVx += otherVel.x();
 	            avgVy += otherVel.y();
@@ -74,11 +73,11 @@ public class Boid {
         }
     }
 
-    private Velocity calculateCohesion(List<Boid> nearbyBoids, BoidsModel model) {
+    private Velocity calculateCohesion(List<UpdateUtil> nearbyBoids, BoidsModel model) {
         double centerX = 0;
         double centerY = 0;
         if (nearbyBoids != null && !nearbyBoids.isEmpty()) {
-	        for (Boid other: nearbyBoids) {
+	        for (UpdateUtil other: nearbyBoids) {
 	        	Position otherPos = other.getPos();
 	            centerX += otherPos.x();
 	            centerY += otherPos.y();
@@ -91,12 +90,12 @@ public class Boid {
         }
     }
     
-    private Velocity calculateSeparation(List<Boid> nearbyBoids, BoidsModel model) {
+    private Velocity calculateSeparation(List<UpdateUtil> nearbyBoids, BoidsModel model) {
         double dx = 0;
         double dy = 0;
         int count = 0;
         if (nearbyBoids != null && !nearbyBoids.isEmpty()) {
-            for (Boid other: nearbyBoids) {
+            for (UpdateUtil other: nearbyBoids) {
                 Position otherPos = other.getPos();
                 double distance = pos.distance(otherPos);
                 if (distance < model.avoidRadius()) {

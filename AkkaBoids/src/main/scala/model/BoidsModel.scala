@@ -1,8 +1,9 @@
 package it.unibo.pcd
 package model
 
-import legacy.{P2d, V2d}
 import model.Boid.Boid
+
+import it.unibo.pcd.legacy.UpdateUtil
 
 import java.util
 
@@ -29,9 +30,9 @@ sealed trait BoidsModel:
 
   def update(boid: Boid, neighbors: List[Boid]): Boid =
 
-    val legacyBoid = new legacy.Boid(boid.position, boid.velocity)
-    val neighborLegacy = new util.ArrayList[legacy.Boid]()
-    neighbors.foreach(b => neighborLegacy.add(legacy.Boid(b.position, b.velocity)))
+    val legacyBoid = new UpdateUtil(boid.position, boid.velocity)
+    val neighborLegacy = new util.ArrayList[UpdateUtil]()
+    neighbors.foreach(b => neighborLegacy.add(legacy.UpdateUtil(b.position, b.velocity)))
     legacyBoid.update(this, neighborLegacy)
 
     Boid(legacyBoid.getPos, legacyBoid.getVel)
