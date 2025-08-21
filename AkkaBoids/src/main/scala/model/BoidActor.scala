@@ -55,10 +55,7 @@ object BoidActor:
             val newOtherBoidsSeen: Int = otherBoidsSeen + 1
 
             if newOtherBoidsSeen >= size - 1 then
-              // context.log.info(s"Boid $myIndex has seen all other boids")
-              // context.log.info(s"Boid $myIndex boid before: $boid")
               val updatedBoid = model.update(boid, neighbors)
-              // context.log.info(s"Boid $myIndex boid after: $updatedBoid")
               receptionist ! RelayTo("model", ReceivePosition(updatedBoid.position, -1))
               apply(
                 receptionist = receptionist,

@@ -101,7 +101,7 @@ object ActorBoidsView:
 sealed class BoidsView extends MainFrame:
 
   this.title = "Boids Simulation"
-  this.preferredSize = new Dimension(700, 700)
+  this.preferredSize = new Dimension(800, 800)
   this.background = Color.WHITE
   private val initialBoidsCount = 50
   private var isRunning = false
@@ -113,7 +113,7 @@ sealed class BoidsView extends MainFrame:
   private var boids: List[Position] = List.empty
 
   private val simulationPanel = new Panel:
-    preferredSize = new Dimension(500, 500)
+    preferredSize = new Dimension(400, 400)
     background = Color.WHITE
 
     listenTo(mouse.clicks)
@@ -180,7 +180,7 @@ sealed class BoidsView extends MainFrame:
         )
         border = BorderFactory.createEmptyBorder(10, 10, 10, 10)
       ,
-      BorderPanel.Position.East
+      BorderPanel.Position.South
     )
 
   private def createLabeledSlider(label: String, slider: Slider) = new BoxPanel(Orientation.Vertical):
