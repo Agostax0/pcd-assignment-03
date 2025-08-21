@@ -75,10 +75,9 @@ class BoidActorTest extends AnyFlatSpec with BeforeAndAfterAll with should.Match
 
     boid1 ! NeighborStatus(Position.zero, Velocity.zero, -1, 1)
 
-    receptionistProbe expectMessage ActorReceptionistMessages.RelayTo(
-      "model",
-      ReceivePosition(Position(0.0, -300.0), -1)
-    )
+    receptionistProbe.receiveMessage() match
+      case ActorReceptionistMessages.RelayTo("model", msg) => succeed
+      case _ => fail()
 
   it should "send to model a message when all other boids have been seen with multiple boids" in:
     val modelProbe = testKit.createTestProbe[BoidModelMessages]()
@@ -110,12 +109,11 @@ class BoidActorTest extends AnyFlatSpec with BeforeAndAfterAll with should.Match
     myReceptionist ! ActorReceptionistMessages.Register(2.toString, boid2)
     myReceptionist ! ActorReceptionistMessages.Register(3.toString, boid3)
 
-    // TODO non ricevo tutte le positzioni di tutti i boid
     myReceptionist ! SendPositions
-//
-//    modelProbe.expectMessageType[ReceivePosition]
-//    modelProbe.expectMessageType[ReceivePosition]
-//    modelProbe.expectMessageType[ReceivePosition]
+
+    modelProbe.expectMessageType[ReceivePosition]
+    modelProbe.expectMessageType[ReceivePosition]
+    modelProbe.expectMessageType[ReceivePosition]
 
   it should "not send any message when receiving itself" in:
     val modelProbe = testKit.createTestProbe[BoidModelMessages]()

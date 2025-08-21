@@ -29,8 +29,8 @@ sealed trait BoidsModel:
 
   def reset: Boid =
     val random = scala.util.Random
-    val pos = Position(random.between(minX, maxX), random.between(minY, maxY))
-    val vel = Velocity(random.between(0, maxSpeed / 2), random.between(0, maxSpeed / 2))
+    val pos = Position(random.between(minX, width), random.between(minY, height))
+    val vel = Velocity(random.between(-maxSpeed / 4, maxSpeed / 4), random.between(-maxSpeed / 4, maxSpeed / 4))
     Boid(pos, vel)
 
   def update(boid: Boid, neighbors: List[Boid]): Boid =
@@ -43,41 +43,89 @@ sealed trait BoidsModel:
 
     if speed > maxSpeed then vel = vel.normalized * maxSpeed
 
-    var pos = boid.position + Position(vel.x, vel.y)
+    var pos =
+      if false & vel == Velocity.zero then boid.position + Position(Velocity.random.x, Velocity.random.y)
+      else boid.position + Position(vel.x, vel.y)
 
     if pos.x < minX then pos = pos + Position(width / 2, 0)
     if pos.x >= maxX then pos = pos - Position(width / 2, 0)
     if pos.y < minY then pos = pos + Position(0, height / 2)
-    if pos.y >= minY then pos = pos - Position(0, height / 2)
+    if pos.y >= maxY then pos = pos - Position(0, height / 2)
 
     Boid(pos, vel)
 
   private def alignment(boid: Boid, neighbors: List[Boid]): Velocity =
-    val velocities =
-      for neighbor <- neighbors
-      yield neighbor.velocity
-    if velocities.isEmpty then Velocity.zero
-    else (velocities.foldRight(Velocity.zero)(_ + _) / velocities.size).normalized
+//    val velocities =
+//      for neighbor <- neighbors
+//      yield neighbor.velocity
+//    if velocities.isEmpty then Velocity.zero
+//    else ((velocities.foldRight(Velocity.zero)(_ + _) / velocities.size) - boid.velocity).normalized
+
+    var avgVx = 0.0
+    var avgVy = 0.0
+
+    if neighbors.isEmpty then Velocity.zero
+    else
+      for otherBoid <- neighbors
+      do
+        avgVx = avgVx + otherBoid.velocity.x
+        avgVy = avgVy + otherBoid.velocity.y
+
+      avgVx = avgVx / neighbors.size
+      avgVy = avgVy / neighbors.size
+
+      Velocity(avgVx - boid.velocity.x, avgVy - boid.velocity.y).normalized
+
   private def cohesion(boid: Boid, neighbors: List[Boid]): Velocity =
-    val positions =
-      for neighbor <- neighbors
-      yield neighbor.position
-    if positions.isEmpty then Velocity.zero
+//    val positions =
+//      for neighbor <- neighbors
+//      yield neighbor.position
+//    if positions.isEmpty then Velocity.zero
+//    else
+//      val center = (positions.foldRight(Position.zero)(_ + _) / positions.size) - boid.position
+//      Velocity(center.x, center.y).normalized
+
+    var centerX = 0.0
+    var centerY = 0.0
+
+    if neighbors.isEmpty then Velocity.zero
     else
-      val center = (positions.foldRight(Position.zero)(_ + _) / positions.size) - boid.position
-      Velocity(center.x, center.y).normalized
+      for otherBoid <- neighbors
+      do
+        centerX = centerX + otherBoid.position.x
+        centerY = centerY + otherBoid.position.y
+
+      centerX = centerX / neighbors.size
+      centerY = centerY / neighbors.size
+
+      Velocity(centerX - boid.position.x, centerY - boid.position.y).normalized
+
   private def separation(boid: Boid, neighbors: List[Boid]): Velocity =
-    val positions = for
-      neighbor <- neighbors
-      if neighbor.position.distance(boid.position) < avoidRadius
-      position = boid.position - neighbor.position
-    yield position
-    if positions.isEmpty then Velocity.zero
+//    val positions = for
+//      neighbor <- neighbors
+//      if neighbor.position.distance(boid.position) < avoidRadius
+//      pos = boid.position - neighbor.position
+//    yield pos
+//    if positions.isEmpty then Velocity.zero
+//    else
+//      val sum = positions.foldRight(Position.zero)(_ + _)
+//      Velocity(sum.x / positions.size, sum.y / positions.size)
+
+    var dx = 0.0
+    var dy = 0.0
+    val nearby = neighbors.filter(n => n.position.distance(boid.position) < avoidRadius)
+
+    if nearby.isEmpty then Velocity.zero
     else
-      val positionsPlusVel = positions.foldRight(Velocity.zero)((pos, vel) => Velocity(pos.x, pos.x) + vel)
-      val positionPlusVelAvg = positionsPlusVel / positions.size
-      val positionPlusVelAvgNormalized = positionPlusVelAvg.normalized
-      positionPlusVelAvgNormalized
+      for otherBoid <- nearby
+      do
+        dx = dx + boid.position.x - otherBoid.position.x
+        dy = dy + boid.position.y - otherBoid.position.y
+
+      dx = dx / nearby.size
+      dy = dy / nearby.size
+
+      Velocity(dx, dy).normalized
 object BoidsModel:
   def localModel: LocalModel = LocalModel()
 
@@ -111,7 +159,7 @@ object BoidModelActor:
 
       import BoidModelMessages.*
       Behaviors.receiveMessage { msg =>
-        context.log.info(s"Model msg: $msg")
+        // context.log.info(s"Model msg: $msg")
 
         msg match
           case UpdateBoidNumber(n) =>

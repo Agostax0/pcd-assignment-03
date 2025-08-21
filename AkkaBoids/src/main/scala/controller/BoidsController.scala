@@ -42,7 +42,7 @@ object BoidsController:
                 timer.startSingleTimer(
                   timerKey,
                   Start,
-                  300.millis
+                  100.millis
                 )
               Behaviors.same
             case UpdateNumberOfBoids(n) =>
@@ -79,8 +79,8 @@ object Root:
       val view: ActorRef[BoidsViewMessages] = context.spawn(ActorBoidsView(), "view")
       val controller: ActorRef[BoidsControllerMessages] = context.spawn(BoidsController(model, view), "controller")
 
-      model ! BoidModelMessages.UpdateBoidNumber(3)
-      model ! BoidModelMessages.UpdateModel(BoidsModel.localModel.copy(width = 800, height = 600))
+      model ! BoidModelMessages.UpdateBoidNumber(50)
+      model ! BoidModelMessages.UpdateModel(BoidsModel.localModel.copy(width = 500, height = 500))
       controller ! BoidsControllerMessages.SetVisibleView
 
       Behaviors.empty

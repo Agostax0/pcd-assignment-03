@@ -28,7 +28,7 @@ object BoidActor:
   def apply(
       receptionist: ActorRef[ActorReceptionistMessages],
       myIndex: Int,
-      boid: Boid = Boid(Position.zero, Velocity.zero),
+      boid: Boid = Boid(Position.one + Position.random, Velocity.one + Velocity.random),
       otherBoidsSeen: Int = 0,
       neighbors: List[Boid] = List.empty,
       model: BoidsModel = BoidsModel.localModel
@@ -39,11 +39,12 @@ object BoidActor:
         case SendPosition =>
           receptionist ! RelayTo("model", ReceivePosition(boid.position, -1))
           Behaviors.same
-        case ResetBoid => apply(receptionist, myIndex, model.reset, model = model)
+        case ResetBoid => apply(receptionist = receptionist, myIndex = myIndex, boid = model.reset, model = model)
         case StopBoid =>
           receptionist ! Unregister(myIndex.toString)
           Behaviors.stopped
-        case UpdateModel(newModel) => apply(receptionist, myIndex, boid, model = newModel)
+        case UpdateModel(newModel) =>
+          apply(receptionist = receptionist, myIndex = myIndex, boid = boid, model = newModel)
         case NeighborRequest(n) =>
           receptionist ! RelayAll(NeighborStatus(boid.position, boid.velocity, myIndex, n))
           Behaviors.same
@@ -53,15 +54,24 @@ object BoidActor:
             var newNeighbors = neighbors
             val newOtherBoidsSeen: Int = otherBoidsSeen + 1
 
-            if newOtherBoidsSeen == size - 1 then
-              context.log.info(s"Boid $myIndex has seen all other boids")
+            if newOtherBoidsSeen >= size - 1 then
+              // context.log.info(s"Boid $myIndex has seen all other boids")
+              // context.log.info(s"Boid $myIndex boid before: $boid")
               val updatedBoid = model.update(boid, neighbors)
+              // context.log.info(s"Boid $myIndex boid after: $updatedBoid")
               receptionist ! RelayTo("model", ReceivePosition(updatedBoid.position, -1))
-              apply(receptionist, myIndex, boid = updatedBoid, neighbors = List.empty, model = model)
+              apply(
+                receptionist = receptionist,
+                myIndex = myIndex,
+                boid = updatedBoid,
+                neighbors = List.empty,
+                model = model
+              )
             else
               if boid.position.distance(pos) < model.perceptionRadius then newNeighbors = newNeighbors :+ Boid(pos, vel)
               apply(
-                receptionist, myIndex, boid, otherBoidsSeen = newOtherBoidsSeen, neighbors = newNeighbors, model = model
+                receptionist = receptionist, myIndex = myIndex, boid = boid, otherBoidsSeen = newOtherBoidsSeen,
+                neighbors = newNeighbors, model = model
               )
         case _ => Behaviors.same
 

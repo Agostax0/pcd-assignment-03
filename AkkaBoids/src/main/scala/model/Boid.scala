@@ -12,7 +12,7 @@ case class Position(x: Double, y: Double):
   def -(other: Position): Position = op(other, (a, b) => Position(a.x - b.x, a.y - b.y))
   def *(scalar: Double): Position = Position(x * scalar, y * scalar)
   def /(scalar: Double): Position = Position(x / scalar, y / scalar)
-  def distance(other: Position): Double = math.sqrt((other.x - x) * (other.x - x) + (other.y - y) * (other.y - y))
+  def distance(other: Position): Double = math.sqrt(Math.pow(other.x - x, 2) + Math.pow(other.y - y, 2))
 object Position:
   def zero: Position = Position(0, 0)
   def one: Position = Position(1, 1)

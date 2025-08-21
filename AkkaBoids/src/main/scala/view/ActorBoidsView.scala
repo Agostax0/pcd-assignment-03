@@ -101,18 +101,19 @@ object ActorBoidsView:
 sealed class BoidsView extends MainFrame:
 
   this.title = "Boids Simulation"
-  this.preferredSize = new Dimension(800, 600)
+  this.preferredSize = new Dimension(700, 700)
   this.background = Color.WHITE
   private val initialBoidsCount = 50
   private var isRunning = false
 
   def updateBoids(boids: List[Position]): Unit =
     this.boids = boids
-    onEDT(repaint())
+    updateBoidsLabel(boids.size)
+    onEDT(simulationPanel.repaint())
   private var boids: List[Position] = List.empty
 
   private val simulationPanel = new Panel:
-    preferredSize = new Dimension(800, 600)
+    preferredSize = new Dimension(500, 500)
     background = Color.WHITE
 
     listenTo(mouse.clicks)
