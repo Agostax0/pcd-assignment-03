@@ -101,7 +101,7 @@ object ActorBoidsView:
 sealed class BoidsView extends MainFrame:
 
   this.title = "Boids Simulation"
-  this.preferredSize = new Dimension(800, 800)
+  this.preferredSize = new Dimension(450, 800)
   this.background = Color.WHITE
   private val initialBoidsCount = 50
   private var isRunning = false
@@ -127,8 +127,8 @@ sealed class BoidsView extends MainFrame:
 
       g.setColor(Color.BLUE)
       for boid <- boids do
-        val x = boid.x.toInt
-        val y = boid.y.toInt
+        val x = boid.x.toInt // - size.width / 2
+        val y = boid.y.toInt // - size.height / 2
         g.fillOval(x, y, 5, 5)
 
   private val startStopButton = new Button:
@@ -164,9 +164,9 @@ sealed class BoidsView extends MainFrame:
   private val boidLabelString = "Num of boids: "
   private val boidCountLabel = new Label(boidLabelString + s"$initialBoidsCount")
 
-  contents = new BorderPanel:
-    add(simulationPanel, BorderPanel.Position.Center)
+  contents = new BorderPanel():
     add(boidCountLabel, BorderPanel.Position.North)
+    add(simulationPanel, BorderPanel.Position.Center)
     add(
       new BoxPanel(Orientation.Vertical):
         contents ++= Seq(
