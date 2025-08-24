@@ -22,7 +22,7 @@ public class Main {
         final List<Player> initialPlayers = GameInitializer.initialPlayers(NUM_PLAYERS, WORLD_WIDTH, WORLD_HEIGHT);
         final List<Food> initialFoods = GameInitializer.initialFoods(NUM_FOODS, WORLD_WIDTH, WORLD_HEIGHT);
         final World initialWorld = new World(WORLD_WIDTH, WORLD_HEIGHT, initialPlayers, initialFoods);
-        final GameStateManager gameManager = new DefaultGameStateManager(initialWorld);
+        final GameStateManager gameManager = new RemoteGameStateManagerImpl(initialWorld);
 
         // List to keep track of active views for repainting
         final List<JFrameRepaintable> views = new ArrayList<>();
