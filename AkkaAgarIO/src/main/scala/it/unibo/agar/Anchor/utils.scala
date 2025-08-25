@@ -1,7 +1,6 @@
-package it.unibo.agar
+package it.unibo.agar.Anchor
 
-import akka.actor.typed.ActorSystem
-import akka.actor.typed.Behavior
+import akka.actor.typed.{ActorSystem, Behavior}
 import com.typesafe.config.ConfigFactory
 
 val seeds = List(2551, 2552) // seed used in the configuration

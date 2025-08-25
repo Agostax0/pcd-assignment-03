@@ -1,14 +1,17 @@
 package it.unibo.agar.view
 
 import it.unibo.agar.model.MockGameStateManager
+import it.unibo.agar.Anchor.*
 
 import java.awt.Graphics2D
 import scala.swing.*
 
-class LocalView(manager: MockGameStateManager, playerId: String) extends MainFrame:
+class LocalView(manager: MockGameStateManager, anchor: Anchor, playerId: String) extends MainFrame:
 
   title = s"Agar.io - Local View ($playerId)"
   preferredSize = new Dimension(400, 400)
+
+  location = anchor.position(preferredSize)
 
   contents = new Panel:
     listenTo(keys, mouse.moves)

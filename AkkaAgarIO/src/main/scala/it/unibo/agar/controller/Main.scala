@@ -1,5 +1,6 @@
 package it.unibo.agar.controller
 
+import it.unibo.agar.Anchor.Anchor.*
 import it.unibo.agar.model.AIMovement
 import it.unibo.agar.model.GameInitializer
 import it.unibo.agar.model.MockGameStateManager
@@ -33,8 +34,8 @@ object Main extends SimpleSwingApplication:
 
   override def top: Frame =
     // Open both views at startup
-    new GlobalView(manager).open()
-    new LocalView(manager, "p1").open()
-    new LocalView(manager, "p2").open()
+    new GlobalView(manager, SE).open()
+    new LocalView(manager, NW, "p1").open()
+    new LocalView(manager, SW, "p2").open()
     // No launcher window, just return an empty frame (or null if allowed)
     new Frame { visible = false }

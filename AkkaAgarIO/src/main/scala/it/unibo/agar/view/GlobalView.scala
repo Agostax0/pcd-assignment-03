@@ -1,15 +1,18 @@
 package it.unibo.agar.view
 
+import it.unibo.agar.Anchor.Anchor
 import it.unibo.agar.model.MockGameStateManager
 
-import java.awt.Color
 import java.awt.Graphics2D
+import scala.swing.Dimension
 import scala.swing.*
 
-class GlobalView(manager: MockGameStateManager) extends MainFrame:
+class GlobalView(manager: MockGameStateManager, anchor: Anchor) extends MainFrame:
 
   title = "Agar.io - Global View"
   preferredSize = new Dimension(800, 800)
+
+  location = anchor.position(preferredSize)
 
   contents = new Panel:
     override def paintComponent(g: Graphics2D): Unit =
