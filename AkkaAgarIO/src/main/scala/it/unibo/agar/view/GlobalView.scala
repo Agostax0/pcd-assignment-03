@@ -10,7 +10,7 @@ import scala.swing.*
 class GlobalView(manager: MockGameStateManager, anchor: Anchor) extends MainFrame:
 
   title = "Agar.io - Global View"
-  preferredSize = new Dimension(800, 800)
+  preferredSize = new Dimension(1050, 1050)
 
   location = anchor.position(preferredSize)
 
