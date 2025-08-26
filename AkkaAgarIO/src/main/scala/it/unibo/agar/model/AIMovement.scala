@@ -1,5 +1,8 @@
 package it.unibo.agar.model
 
+import it.unibo.agar.model.Entity.Food
+import it.unibo.agar.model.Entity.World
+
 trait AIMovement:
   /** Moves the AI player in the world
     *

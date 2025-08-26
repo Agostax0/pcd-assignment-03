@@ -4,8 +4,8 @@ import akka.actor.typed.ActorRef
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.Behaviors
 import it.unibo.agar.model.EatingManager
-import it.unibo.agar.model.Player
-import it.unibo.agar.model.World
+import it.unibo.agar.model.Entity.Player
+import it.unibo.agar.model.Entity.World
 
 object GameMaster:
   sealed trait Command

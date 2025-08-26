@@ -2,9 +2,8 @@ package it.unibo.agar.view
 
 import akka.actor.typed.ActorRef
 import it.unibo.agar.Utils.*
-import it.unibo.agar.model.AIMovement
-import it.unibo.agar.model.Player
-import it.unibo.agar.model.World
+import it.unibo.agar.model.Entity.Player
+import it.unibo.agar.model.Entity.World
 import it.unibo.agar.controller.GameMaster
 
 import java.awt.Graphics2D

@@ -3,7 +3,7 @@ package it.unibo.agar.controller
 import akka.actor.typed.ActorRef
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.Behaviors
-import it.unibo.agar.model.World
+import it.unibo.agar.model.Entity.World
 
 object PlayerActor:
   sealed trait Command

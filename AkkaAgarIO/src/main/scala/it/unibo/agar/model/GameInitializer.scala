@@ -1,6 +1,8 @@
 package it.unibo.agar.model
 
 import it.unibo.agar.Utils.NamePrefix
+import it.unibo.agar.model.Entity.Food
+import it.unibo.agar.model.Entity.Player
 
 import scala.util.Random
 

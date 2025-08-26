@@ -6,7 +6,7 @@ import akka.actor.typed.scaladsl.Behaviors
 import it.unibo.agar.Utils.Anchor.*
 import it.unibo.agar.Utils.NamePrefix
 import it.unibo.agar.model.GameInitializer
-import it.unibo.agar.model.World
+import it.unibo.agar.model.Entity.World
 import it.unibo.agar.view.GlobalView
 import it.unibo.agar.view.LocalView
 import it.unibo.agar.view.ObserverActor

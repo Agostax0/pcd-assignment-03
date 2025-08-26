@@ -1,5 +1,9 @@
 package it.unibo.agar.model
 
+import it.unibo.agar.model.Entity.Entity
+import it.unibo.agar.model.Entity.Food
+import it.unibo.agar.model.Entity.Player
+
 object EatingManager:
 
   private val MASS_MARGIN = 1.1 // 10% bigger to eat

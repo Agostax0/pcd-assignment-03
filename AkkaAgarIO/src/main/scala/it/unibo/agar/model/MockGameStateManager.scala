@@ -1,5 +1,8 @@
 package it.unibo.agar.model
 
+import it.unibo.agar.model.Entity.Player
+import it.unibo.agar.model.Entity.World
+
 trait GameStateManager:
 
   def getWorld: World

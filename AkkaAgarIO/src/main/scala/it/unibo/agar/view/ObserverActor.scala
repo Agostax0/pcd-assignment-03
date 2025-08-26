@@ -2,7 +2,7 @@ package it.unibo.agar.view
 
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.Behaviors
-import it.unibo.agar.model.World
+import it.unibo.agar.model.Entity.World
 
 import java.awt.Window
 import scala.swing.Swing.onEDT

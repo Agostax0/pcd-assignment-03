@@ -1,7 +1,7 @@
 package it.unibo.agar.view
 
 import it.unibo.agar.Utils.NamePrefix
-import it.unibo.agar.model.World
+import it.unibo.agar.model.Entity.World
 
 import java.awt.Color
 import java.awt.Graphics2D
