@@ -5,7 +5,7 @@ trait GameStateManager:
   def getWorld: World
   def movePlayerDirection(id: String, dx: Double, dy: Double): Unit
 
-class MockGameStateManager(
+case class MockGameStateManager(
     var world: World,
     val speed: Double = 10.0
 ) extends GameStateManager:

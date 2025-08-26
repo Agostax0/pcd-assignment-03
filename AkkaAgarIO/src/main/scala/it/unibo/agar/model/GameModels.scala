@@ -13,8 +13,8 @@ sealed trait Entity:
     val dy = y - other.y
     math.hypot(dx, dy)
 
-case class Player(id: String, x: Double, y: Double, mass: Double) extends Entity:
-
+case class Player(id: String, x: Double, y: Double, mass: Double, aiMove: Option[AIMovement] = Option.empty)
+    extends Entity:
   def grow(entity: Entity): Player =
     copy(mass = mass + entity.mass)
 
