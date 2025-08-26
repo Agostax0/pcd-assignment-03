@@ -8,6 +8,10 @@ import javax.swing.*;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import static it.unibo.agar.RunServerSide.GAME_TICK_MS;
 
 public class RunClientSide {
 
@@ -23,13 +27,22 @@ public class RunClientSide {
             LocalView localViewP2 = new LocalView(manager, "p2");
             localViewP2.setVisible(true);
 
+            final java.util.Timer timer = new Timer(true); // Use daemon thread for timer
+            timer.scheduleAtFixedRate(new TimerTask() {
+                @Override
+                public void run() {
+                    JFrameRepaintable repaintable = localViewP2::repaintView;
+                    SwingUtilities.invokeLater(repaintable::repaintView);
+                }
+            }, 0, GAME_TICK_MS);
+
+
             manager.addListener(new RemoteGameStateListener() {
                 @Override
                 public void setRemoteGameState(RemoteGameStateManager remoteGameStateManager) throws RemoteException {
                     System.out.println("[Client]: Update");
                     localViewP2.setRemoteGameStateManager(remoteGameStateManager);
-                    JFrameRepaintable repaintable = localViewP2::repaintView;
-                    SwingUtilities.invokeLater(repaintable::repaintView);
+
                 }
             });
 

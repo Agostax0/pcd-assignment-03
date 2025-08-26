@@ -21,7 +21,7 @@ public class RunServerSide {
     private static final int WORLD_HEIGHT = 1000;
     private static final int NUM_PLAYERS = 4; // p1, p2, p3, p4
     private static final int NUM_FOODS = 100;
-    private static final long GAME_TICK_MS = 30; // Corresponds to ~33 FPS
+    public static final long GAME_TICK_MS = 30; // Corresponds to ~33 FPS
 
     public static final String GAME_STATE_MANAGER_BINDING = "GameStateManager";
     public static final int DEFAULT_PORT = 2000;
