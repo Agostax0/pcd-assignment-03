@@ -27,7 +27,7 @@ object Main extends SimpleSwingApplication:
       val gameMaster = ctx.spawn(GameMaster(World(width, height, Seq.empty, foods)), "game-master")
 
       players.foreach { p =>
-        val ref = ctx.spawn(PlayerActor(p, gameMaster), NamePrefix.Player.toString + p.id)
+        val ref = ctx.spawn(PlayerActor(p.id, gameMaster), NamePrefix.Player.toString + p.id)
         gameMaster ! GameMaster.RegisterPlayer(p, ref)
       }
 

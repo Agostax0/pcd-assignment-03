@@ -24,7 +24,7 @@ object GameMaster:
       ): Behavior[Command] =
         Behaviors.receiveMessage {
           case Tick =>
-            playerRefs.values.foreach(_ ! PlayerActor.Compute())
+            playerRefs.values.foreach(_ ! PlayerActor.Compute(world))
 
             val newWorld = directions.foldLeft(world) { case (w, (id, (dx, dy))) =>
               w.playerById(id) match
