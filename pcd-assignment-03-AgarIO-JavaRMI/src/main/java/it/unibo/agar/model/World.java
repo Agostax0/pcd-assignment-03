@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class World {
+public class World implements java.io.Serializable {
     private final int width;
     private final int height;
     private final List<Player> players;

@@ -7,7 +7,7 @@ import java.util.List;
 public class RemoteGameStateManagerDelegate implements RemoteGameStateManager {
     private final List<RemoteGameStateListener> listeners = new ArrayList<>();
 
-    private final GameStateManager manager;
+    public final GameStateManager manager;
 
     public RemoteGameStateManagerDelegate(final World initialWorld) {
         manager = new DefaultGameStateManager(initialWorld);
@@ -26,7 +26,7 @@ public class RemoteGameStateManagerDelegate implements RemoteGameStateManager {
     @Override
     public void tick() throws RemoteException {
         manager.tick();
-        for (var listener : listeners) { listener.setWorld(this.getWorld()); }
+        for (var listener : listeners) { listener.setRemoteGameState((RemoteGameStateManager) this); }
     }
 
     @Override

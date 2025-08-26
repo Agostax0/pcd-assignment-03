@@ -19,7 +19,7 @@ public class AIMovement {
         if (aiOpt.isPresent()) {
             final Player ai = aiOpt.get();
             final Optional<Food> foodOpt = nearestFood(ai, world);
-            if (foodOpt.isPresent()) {
+            if (false && foodOpt.isPresent()) {
                 Food food = foodOpt.get();
                 final double dx = food.getX() - ai.getX();
                 final double dy = food.getY() - ai.getY();

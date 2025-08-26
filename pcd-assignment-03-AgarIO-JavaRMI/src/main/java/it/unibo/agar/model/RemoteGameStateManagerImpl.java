@@ -2,17 +2,16 @@ package it.unibo.agar.model;
 
 import java.rmi.RemoteException;
 
-public class RemoteGameStateManagerImpl implements GameStateManager {
-    private final RemoteGameStateManagerDelegate delegate;
+public class RemoteGameStateManagerImpl extends RemoteGameStateManagerDelegate implements GameStateManager {
 
     public RemoteGameStateManagerImpl(final World initialWorld) {
-        this.delegate = new RemoteGameStateManagerDelegate(initialWorld);
+        super(initialWorld);
     }
 
     @Override
     public World getWorld() {
         try {
-            return delegate.getWorld();
+            return super.getWorld();
         } catch (RemoteException e) {
             log("getWorld: " + e);
         }
@@ -22,7 +21,7 @@ public class RemoteGameStateManagerImpl implements GameStateManager {
     @Override
     public void setPlayerDirection(String playerId, double dx, double dy) {
         try {
-            delegate.setPlayerDirection(playerId, dx, dy);
+            super.setPlayerDirection(playerId, dx, dy);
         } catch (RemoteException e) {
             log("setPlayerDirection: " + e);
         }
@@ -31,7 +30,7 @@ public class RemoteGameStateManagerImpl implements GameStateManager {
     @Override
     public void tick() {
         try {
-            delegate.tick();
+            super.tick();
         } catch (RemoteException e) {
             log("tick: " + e);
         }
