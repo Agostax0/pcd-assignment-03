@@ -3,6 +3,7 @@ package it.unibo.agar.controller
 import akka.actor.typed.ActorRef
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.Behaviors
+import it.unibo.agar.model.Direction
 import it.unibo.agar.model.EatingManager
 import it.unibo.agar.model.Entity.Player
 import it.unibo.agar.model.Entity.World
@@ -11,14 +12,14 @@ object GameMaster:
   sealed trait Command
   case object Tick extends Command
   case class RegisterPlayer(player: Player, ref: ActorRef[PlayerActor.Command]) extends Command
-  case class MovePlayer(id: String, dx: Double, dy: Double) extends Command
+  case class MovePlayer(id: String, dir: Direction) extends Command
   case class RegisterObserver(observer: ActorRef[World]) extends Command
 
   def apply(initialWorld: World): Behavior[Command] =
     Behaviors.setup { ctx =>
       def loop(
           world: World,
-          directions: Map[String, (Double, Double)],
+          directions: Map[String, Direction],
           observers: Set[ActorRef[World]],
           playerRefs: Map[String, ActorRef[PlayerActor.Command]]
       ): Behavior[Command] =
@@ -26,18 +27,18 @@ object GameMaster:
           case Tick =>
             playerRefs.values.foreach(_ ! PlayerActor.Compute(world))
 
-            val newWorld = directions.foldLeft(world) { case (w, (id, (dx, dy))) =>
+            val newWorld = directions.foldLeft(world) { case (w, (id, dir)) =>
               w.playerById(id) match
                 case Some(player) =>
-                  val updatedPlayer = updatePlayerPosition(w, player, dx, dy)
+                  val updatedPlayer = updatePlayerPosition(w, player, dir.x, dir.y)
                   updateWorldAfterMovement(w, updatedPlayer)
                 case None => w
             }
             observers.foreach(_ ! newWorld)
             loop(newWorld, directions, observers, playerRefs)
 
-          case MovePlayer(id, dx, dy) =>
-            loop(world, directions.updated(id, (dx, dy)), observers, playerRefs)
+          case MovePlayer(id, dir: Direction) =>
+            loop(world, directions.updated(id, dir), observers, playerRefs)
 
           case RegisterPlayer(player, ref) =>
             loop(world.copy(players = world.players :+ player), directions, observers, playerRefs + (player.id -> ref))

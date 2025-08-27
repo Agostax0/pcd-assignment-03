@@ -4,7 +4,6 @@ import akka.actor.typed.ActorSystem
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.Behaviors
 import it.unibo.agar.Utils.Anchor.*
-import it.unibo.agar.Utils.NamePrefix
 import it.unibo.agar.model.GameInitializer
 import it.unibo.agar.model.Entity.Player
 import it.unibo.agar.model.Entity.World

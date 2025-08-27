@@ -9,7 +9,7 @@ import scala.swing.*
 
 class GlobalView(anchor: Anchor) extends MainFrame with WorldUpdatable:
   title = "Agar.io - Global View"
-  preferredSize = new Dimension(1000, 1100)
+  preferredSize = new Dimension(1050, 1100)
   location = anchor.position(preferredSize)
 
   private var currentWorld: World = World(0, 0, Seq(), Seq())

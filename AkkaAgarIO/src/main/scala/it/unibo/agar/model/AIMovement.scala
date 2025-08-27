@@ -3,6 +3,8 @@ package it.unibo.agar.model
 import it.unibo.agar.model.Entity.Food
 import it.unibo.agar.model.Entity.World
 
+case class Direction(x: Double, y: Double)
+
 trait AIMovement:
   /** Moves the AI player in the world
     *
@@ -11,15 +13,16 @@ trait AIMovement:
     * @param world
     *   the current game world containing players and food
     */
-  def move(name: String, world: World): Unit
+  def move(name: String, world: World): Direction
 
 /** A very simple AI that moves the player to the right */
 object StupidAI extends AIMovement:
-  override def move(name: String, world: World): Unit =
+  override def move(name: String, world: World): Direction =
     world.playerById(name) match
       case Some(_) =>
-        println("A")
+        Direction(1, 0)
       case None =>
+        Direction(0, 0)
 
 object NearestFoodAI extends AIMovement:
   /** Finds the nearest food for a given player in the world
@@ -30,12 +33,12 @@ object NearestFoodAI extends AIMovement:
     *   the current game world containing players and food
     * @return
     */
-  def nearestFood(player: String, world: World): Option[Food] =
+  private def nearestFood(player: String, world: World): Option[Food] =
     world.foods
       .sortBy(food => world.playerById(player).map(p => p.distanceTo(food)).getOrElse(Double.MaxValue))
       .headOption
 
-  override def move(name: String, world: World): Unit =
+  override def move(name: String, world: World): Direction =
     val aiOpt = world.playerById(name)
     val foodOpt = nearestFood(name, world)
     (aiOpt, foodOpt) match
@@ -44,7 +47,7 @@ object NearestFoodAI extends AIMovement:
         val dy = food.y - ai.y
         val distance = math.hypot(dx, dy)
         if (distance > 0)
-          val normalizedDx = dx / distance
-          val normalizedDy = dy / distance
-          // gameManager.movePlayerDirection(name, normalizedDx, normalizedDy)
-      case _ => // Do nothing if AI or food doesn't exist
+          Direction(dx / distance, dy / distance)
+        else
+          Direction(0, 0)
+      case _ => Direction(0, 0)
