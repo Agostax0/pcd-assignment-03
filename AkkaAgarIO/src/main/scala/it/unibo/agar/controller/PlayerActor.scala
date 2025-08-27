@@ -3,10 +3,11 @@ package it.unibo.agar.controller
 import akka.actor.typed.ActorRef
 import akka.actor.typed.Behavior
 import akka.actor.typed.scaladsl.Behaviors
+import it.unibo.agar.Message
 import it.unibo.agar.model.Entity.World
 
 object PlayerActor:
-  sealed trait Command
+  sealed trait Command extends Message
   case class Compute(world: World) extends Command
 
   def apply(playerId: String, gameMaster: ActorRef[GameMaster.Command]): Behavior[Command] =
