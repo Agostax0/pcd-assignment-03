@@ -42,6 +42,7 @@ object GameMaster:
             loop(world, directions.updated(id, dir), observers, playerRefs)
 
           case RegisterPlayer(player, ref) =>
+            ctx.log.info(s"Player ${player.id} registered " + ctx.self)
             loop(world.copy(players = world.players :+ player), directions, observers, playerRefs + (player.id -> ref))
 
           case RegisterObserver(observer) =>
