@@ -4,21 +4,13 @@ import akka.actor.typed.ActorRef
 import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.Behaviors
 import it.unibo.agar.Message
-import it.unibo.agar.Utils.Anchor.SW
-import it.unibo.agar.model.GameInitializer
-import it.unibo.agar.view.LocalView
-import it.unibo.agar.view.ObserverActor
 
 object ClientMain extends App:
-  val width = 1000
-  val height = 1000
-  val player = GameInitializer.initialPlayers(1, width, height).head
+  sealed private trait ConnectionMessage extends Message
+  private case class Connected(remoteGameMaster: ActorRef[GameMaster.Command]) extends ConnectionMessage
+  private case class ConnectionFailed(ex: Throwable) extends ConnectionMessage
 
-  sealed trait ConnectionMessage extends Message
-  case class Connected(remoteGameMaster: ActorRef[GameMaster.Command]) extends ConnectionMessage
-  case class ConnectionFailed(ex: Throwable) extends ConnectionMessage
-
-  val root = Behaviors.setup[ConnectionMessage] { ctx =>
+  private val root = Behaviors.setup[ConnectionMessage] { ctx =>
     val serverPath = "akka://agario@127.0.0.1:25251/user/game-master"
     import scala.concurrent.duration.*
     import ctx.executionContext
@@ -35,12 +27,7 @@ object ClientMain extends App:
 
     Behaviors.receiveMessage {
       case Connected(remoteGameMaster) =>
-        val localView = new LocalView(SW, player.id, remoteGameMaster)
-        localView.open()
-        val playerRef = ctx.spawn(PlayerActor(player.id, remoteGameMaster), player.id)
-        remoteGameMaster ! GameMaster.RegisterPlayer(player, playerRef)
-        val playerObs = ctx.spawn(ObserverActor(localView), "player-local-obs")
-        remoteGameMaster ! GameMaster.RegisterObserver(playerObs)
+        remoteGameMaster ! GameMaster.JoinRequest(ctx.spawn(ClientHandlerActor(remoteGameMaster), "client-handler"))
         Behaviors.same
       case ConnectionFailed(ex) =>
         println(s"Can't connect to the server: $ex")
