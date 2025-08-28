@@ -6,7 +6,8 @@ import akka.actor.typed.scaladsl.Behaviors
 import it.unibo.agar.Message
 import it.unibo.agar.Utils.Anchor.SW
 import it.unibo.agar.model.Entity.Player
-import it.unibo.agar.view.{LocalView, ObserverActor}
+import it.unibo.agar.view.LocalView
+import it.unibo.agar.view.ObserverActor
 
 object ClientHandlerActor {
   sealed trait Command extends Message
