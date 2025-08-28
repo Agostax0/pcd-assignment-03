@@ -9,6 +9,8 @@ import it.unibo.agar.model.EatingManager
 import it.unibo.agar.model.Entity.Player
 import it.unibo.agar.model.Entity.World
 
+import scala.concurrent.duration.*
+
 object GameMaster:
   sealed trait Command extends Message
   case object Tick extends Command
@@ -17,40 +19,49 @@ object GameMaster:
   case class RegisterObserver(observer: ActorRef[World]) extends Command
 
   def apply(initialWorld: World): Behavior[Command] =
-    Behaviors.setup { ctx =>
-      def loop(
-          world: World,
-          directions: Map[String, Direction],
-          observers: Set[ActorRef[World]],
-          playerRefs: Map[String, ActorRef[PlayerActor.Command]]
-      ): Behavior[Command] =
-        Behaviors.receiveMessage {
-          case Tick =>
-            playerRefs.values.foreach(_ ! PlayerActor.Compute(world))
+    Behaviors.withTimers { timers =>
+      Behaviors.setup { ctx =>
+        timers.startTimerAtFixedRate(Tick, 30.millis)
 
-            val newWorld = directions.foldLeft(world) { case (w, (id, dir)) =>
-              w.playerById(id) match
-                case Some(player) =>
-                  val updatedPlayer = updatePlayerPosition(w, player, dir.x, dir.y)
-                  updateWorldAfterMovement(w, updatedPlayer)
-                case None => w
-            }
-            observers.foreach(_ ! newWorld)
-            loop(newWorld, directions, observers, playerRefs)
+        def loop(
+            world: World,
+            directions: Map[String, Direction],
+            observers: Set[ActorRef[World]],
+            playerRefs: Map[String, ActorRef[PlayerActor.Command]]
+        ): Behavior[Command] =
+          Behaviors.receiveMessage {
+            case Tick =>
+              playerRefs.values.foreach(_ ! PlayerActor.Compute(world))
 
-          case MovePlayer(id, dir: Direction) =>
-            loop(world, directions.updated(id, dir), observers, playerRefs)
+              val newWorld = directions.foldLeft(world) { case (w, (id, dir)) =>
+                w.playerById(id) match
+                  case Some(player) =>
+                    val updatedPlayer = updatePlayerPosition(w, player, dir.x, dir.y)
+                    updateWorldAfterMovement(w, updatedPlayer)
+                  case None => w
+              }
+              observers.foreach(_ ! newWorld)
+              loop(newWorld, directions, observers, playerRefs)
 
-          case RegisterPlayer(player, ref) =>
-            ctx.log.info(s"Player ${player.id} registered " + ctx.self)
-            loop(world.copy(players = world.players :+ player), directions, observers, playerRefs + (player.id -> ref))
+            case MovePlayer(id, dir: Direction) =>
+              loop(world, directions.updated(id, dir), observers, playerRefs)
 
-          case RegisterObserver(observer) =>
-            observer ! world
-            loop(world, directions, observers + observer, playerRefs)
-        }
+            case RegisterPlayer(player, ref) =>
+              ctx.log.info(s"Player ${player.id} registered " + ctx.self)
+              loop(
+                world.copy(players = world.players :+ player),
+                directions,
+                observers,
+                playerRefs + (player.id -> ref)
+              )
 
-      loop(initialWorld, Map.empty, Set.empty, Map.empty)
+            case RegisterObserver(observer) =>
+              observer ! world
+              loop(world, directions, observers + observer, playerRefs)
+          }
+
+        loop(initialWorld, Map.empty, Set.empty, Map.empty)
+      }
     }
 
   private val speed = 10.0
