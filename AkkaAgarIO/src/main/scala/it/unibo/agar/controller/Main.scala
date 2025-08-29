@@ -52,7 +52,7 @@ object Main extends SimpleSwingApplication:
       import ctx.executionContext
       ctx.system.scheduler.scheduleAtFixedRate(0.millis, 30.millis)(() => gameMaster ! GameMaster.Tick)
 
-      Behaviors.empty
+      Behaviors.same
     }
 
   private val system = ActorSystem[Nothing](root, "agar")

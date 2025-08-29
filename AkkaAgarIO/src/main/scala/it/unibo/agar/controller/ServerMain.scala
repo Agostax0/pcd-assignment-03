@@ -24,7 +24,7 @@ object ServerMain extends App:
     val gvObs = ctx.spawn(ObserverActor(gv), "gv-obs")
     gameMaster ! GameMaster.RegisterObserver(gvObs)
 
-    Behaviors.empty
+    Behaviors.same
   }
 
   ActorSystem[GameMaster.Command](root, "agario")
