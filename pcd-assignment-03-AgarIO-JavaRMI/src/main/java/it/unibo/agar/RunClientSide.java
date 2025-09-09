@@ -24,25 +24,39 @@ public class RunClientSide {
 
             var manager = (RemoteGameStateManager) registry.lookup(RunServerSide.GAME_STATE_MANAGER_BINDING);
 
-            LocalView localViewP2 = new LocalView(manager, "p2");
-            localViewP2.setVisible(true);
+            LocalView localView = new LocalView(manager, "p2");
+            localView.setVisible(true);
 
             final java.util.Timer timer = new Timer(true); // Use daemon thread for timer
             timer.scheduleAtFixedRate(new TimerTask() {
                 @Override
                 public void run() {
-                    JFrameRepaintable repaintable = localViewP2::repaintView;
+                    JFrameRepaintable repaintable = localView::repaintView;
                     SwingUtilities.invokeLater(repaintable::repaintView);
                 }
             }, 0, GAME_TICK_MS);
 
 
-            manager.addListener(new RemoteGameStateListener() {
+            RemoteGameStateListener playerListener = new RemoteGameStateListener() {
                 @Override
                 public void setRemoteGameState(RemoteGameStateManager remoteGameStateManager) throws RemoteException {
-                    System.out.println("[Client]: Update");
-                    localViewP2.setRemoteGameStateManager(remoteGameStateManager);
+                    localView.setRemoteGameStateManager(remoteGameStateManager);
 
+                }
+
+                @Override
+                public void gameOver(String winningPlayerId) throws RemoteException {
+                    System.out.println("Winning player is: " + winningPlayerId);
+                }
+            };
+
+            manager.addListener(playerListener);
+
+            localView.setOnClose(() -> {
+                try {
+                    manager.removeListener(playerListener);
+                } catch (RemoteException e) {
+                    throw new RuntimeException(e);
                 }
             });
 

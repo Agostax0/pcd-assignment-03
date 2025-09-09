@@ -61,8 +61,6 @@ public class RunServerSide {
 
                 System.out.println("[Server]: Tick");
                 remoteManager.tick();
-
-
                 SwingUtilities.invokeLater(repaintable::repaintView);
             }
         }, 0, GAME_TICK_MS);

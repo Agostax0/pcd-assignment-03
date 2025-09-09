@@ -36,6 +36,11 @@ public class RemoteGameStateManagerImpl extends RemoteGameStateManagerDelegate i
         }
     }
 
+    @Override
+    public boolean isGameOver() {
+        return super.manager.isGameOver();
+    }
+
     private void log(String msg){
         System.out.println("[ " + this.getClass() +  " ]" + "\t" + msg);
     }

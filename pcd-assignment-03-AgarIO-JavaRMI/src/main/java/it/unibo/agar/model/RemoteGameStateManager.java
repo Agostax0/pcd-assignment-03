@@ -9,4 +9,5 @@ public interface RemoteGameStateManager extends Remote {
     void tick() throws RemoteException;
 
     void addListener(RemoteGameStateListener l) throws RemoteException;
+    void removeListener(RemoteGameStateListener l) throws RemoteException;
 }

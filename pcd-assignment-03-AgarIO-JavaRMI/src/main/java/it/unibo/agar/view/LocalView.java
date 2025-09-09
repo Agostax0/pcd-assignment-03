@@ -6,8 +6,7 @@ import it.unibo.agar.model.RemoteGameStateManager;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionAdapter;
+import java.awt.event.*;
 import java.rmi.RemoteException;
 import java.util.Optional;
 
@@ -32,6 +31,22 @@ public class LocalView extends JFrame {
 
         pack();
         setLocationRelativeTo(null); // Center on screen
+    }
+
+    public void setOnClose(Runnable onClose){
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e){
+                try{
+                    onClose.run();
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+                finally {
+                    System.exit(1);
+                }
+            }
+        });
     }
 
     public synchronized void setRemoteGameStateManager(RemoteGameStateManager gameStateManager) {

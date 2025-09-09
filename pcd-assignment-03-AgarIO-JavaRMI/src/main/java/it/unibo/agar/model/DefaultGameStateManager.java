@@ -35,6 +35,11 @@ public class DefaultGameStateManager implements GameStateManager {
         cleanupPlayerDirections();
     }
 
+    @Override
+    public boolean isGameOver() {
+        return world.getFoods().isEmpty();
+    }
+
     private World moveAllPlayers(final World currentWorld) {
         final List<Player> updatedPlayers = currentWorld.getPlayers().stream()
             .map(player -> {
