@@ -7,18 +7,17 @@ import it.unibo.agar.model.Entity.Player
 import scala.util.Random
 
 object GameInitializer:
-  private val initialPlayerMass = 120.0
   private val initialFoodMass = 100.0
-  
-  def spawnPlayer(id: String, width: Int, height: Int, initialMass: Double = initialPlayerMass): Player =
+
+  def spawnPlayer(id: String, width: Int, height: Int, initialMass: Double = Player.defaultMass): Player =
     Player(id, Random.nextInt(width), Random.nextInt(height), initialMass)
 
-  def initialPlayers(numPlayers: Int, width: Int, height: Int, initialMass: Double = initialPlayerMass): Seq[Player] =
+  def initialPlayers(numPlayers: Int, width: Int, height: Int, initialMass: Double = Player.defaultMass): Seq[Player] =
     (1 to numPlayers).map[Player](i =>
       Player(NamePrefix.Player.toString + i, Random.nextInt(width), Random.nextInt(height), initialMass)
     )
 
-  def initialAIs(numAIs: Int, width: Int, height: Int, initialMass: Double = initialPlayerMass): Seq[Player] =
+  def initialAIs(numAIs: Int, width: Int, height: Int, initialMass: Double = Player.defaultMass): Seq[Player] =
     (1 to numAIs).map[Player](i =>
       Player(
         NamePrefix.AIPlayer.toString + i,

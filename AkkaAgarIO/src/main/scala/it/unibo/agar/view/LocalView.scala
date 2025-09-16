@@ -39,6 +39,12 @@ class LocalView(
         .getOrElse((0.0, 0.0))
       AgarViewUtils.drawWorld(g, currentWorld, offsetX, offsetY)
 
+      getPlayer(playerId).foreach { player =>
+        g.setColor(java.awt.Color.BLACK)
+        g.setFont(new java.awt.Font("Arial", java.awt.Font.BOLD, 16))
+        g.drawString(s"Score: ${player.score}", 10, 20)
+      }
+
     reactions += { case e: event.MouseMoved =>
       val mousePos = e.point
       getPlayer(playerId) match
