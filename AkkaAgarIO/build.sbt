@@ -22,13 +22,13 @@ lazy val root = (project in file("."))
     Compile / run / fork := true,
     commands ++= Seq(
       Command.command("runServer") { state =>
-        "set run / javaOptions += \"-Dconfig.file=src/main/resources/agario-server.conf\"" ::
+        "set run / javaOptions += \"-Dconfig.file=src/main/resources/agario.conf\"" ::
           "runMain it.unibo.agar.controller.ServerMain" ::
           "set run / javaOptions := Seq()" ::
           state
       },
       Command.command("runClient") { state =>
-        "set run / javaOptions += \"-Dconfig.file=src/main/resources/agario-client.conf\"" ::
+        "set run / javaOptions += \"-Dconfig.file=src/main/resources/agario.conf\"" ::
           "runMain it.unibo.agar.controller.ClientMain" ::
           "set run / javaOptions := Seq()" ::
           state

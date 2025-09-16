@@ -2,6 +2,8 @@ package it.unibo.agar.controller
 
 import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.Behaviors
+import akka.cluster.typed.ClusterSingleton
+import akka.cluster.typed.SingletonActor
 import it.unibo.agar.Utils.Anchor.SE
 import it.unibo.agar.model.Entity.World
 import it.unibo.agar.model.GameInitializer
@@ -15,16 +17,21 @@ object ServerMain extends App:
   val foods = GameInitializer.initialFoods(numFoods, width, height)
   val world = World(width, height, Seq.empty, foods)
 
-  val root = Behaviors.setup[GameMaster.Command] { ctx =>
-    val gameMaster = ctx.spawn(GameMaster(world), "game-master")
+  private def start = Behaviors.setup[GameMaster.Command] { ctx =>
+    val singletonManager = ClusterSingleton(ctx.system)
+    val gameMaster = singletonManager.init(
+      SingletonActor(GameMaster(world), "game-master")
+    )
+
     val lobby = ctx.spawn(Lobby(gameMaster, width, height), "lobby")
 
-    val gv = new GlobalView(SE)
-    gv.open()
-    val gvObs = ctx.spawn(ObserverActor(gv), "gv-obs")
-    gameMaster ! GameMaster.RegisterObserver(gvObs)
+    if ctx.system.address.host.isDefined then
+      val gv = new GlobalView(SE)
+      gv.open()
+      val gvObs = ctx.spawn(ObserverActor(gv), "gv-obs")
+      gameMaster ! GameMaster.RegisterObserver(gvObs)
 
     Behaviors.same
   }
 
-  ActorSystem[GameMaster.Command](root, "agario")
+  ActorSystem[GameMaster.Command](start, "agario")

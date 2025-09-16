@@ -1,25 +1,37 @@
 package it.unibo.agar.controller
 
+import it.unibo.agar.Message
+
 import akka.actor.typed.ActorRef
 import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.Behaviors
-import it.unibo.agar.Message
+import com.typesafe.config.ConfigFactory
 
 object ClientMain extends App:
   sealed trait ConnectionMessage extends Message
-  case class Connected(remoteLobby: ActorRef[Lobby.Command]) extends ConnectionMessage
-  case class ConnectionFailed(ex: Throwable) extends ConnectionMessage
+
   case class Initialize(remoteLobby: ActorRef[Lobby.Command], remoteGameMaster: ActorRef[GameMaster.Command])
       extends ConnectionMessage
+  case class Connected(remoteLobby: ActorRef[Lobby.Command]) extends ConnectionMessage
+  case class ConnectionFailed(ex: Throwable) extends ConnectionMessage
 
-  private val root = Behaviors.setup[ConnectionMessage] { ctx =>
-    val serverPath = "akka://agario@127.0.0.1:25251/user/lobby"
+  val name = "agario-client"
+  val port = 0 // use 0 for a random available port
+  private val config = ConfigFactory
+    .parseString(s"""akka.remote.artery.canonical.port=$port""")
+    .withFallback(ConfigFactory.load(name))
+
+  private val serverPath = "akka://agario@127.0.0.1:25251/user/lobby"
+
+  private def start = Behaviors.setup[ConnectionMessage] { ctx =>
     import scala.concurrent.duration.*
     import ctx.executionContext
+    import scala.util.{Success, Failure}
     import akka.actor.typed.scaladsl.adapter.*
+
     val classicSelection = ctx.system.classicSystem.actorSelection(serverPath)
     val futureRef = classicSelection.resolveOne(3.seconds)
-    import scala.util.{Success, Failure}
+
     futureRef.onComplete {
       case Success(ref) =>
         ctx.self ! Connected(ref.toTyped[Lobby.Command])
@@ -43,4 +55,4 @@ object ClientMain extends App:
     }
   }
 
-  ActorSystem[ConnectionMessage](root, "agario")
+  ActorSystem[ConnectionMessage](start, name, config)

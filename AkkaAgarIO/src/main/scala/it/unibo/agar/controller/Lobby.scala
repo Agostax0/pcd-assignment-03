@@ -10,6 +10,7 @@ import scala.util.Random
 
 object Lobby:
   sealed trait Command extends Message
+  
   case class Connect(replyTo: ActorRef[ClientMain.ConnectionMessage]) extends Command
   case class JoinRequest(replyTo: ActorRef[ClientHandlerActor.Command]) extends Command
   case class LeaveRequest(playerId: String) extends Command
