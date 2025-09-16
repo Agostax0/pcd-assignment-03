@@ -30,17 +30,18 @@ class LocalView(
     focusable = true
     requestFocusInWindow()
 
+    private def getPlayer(id: String): Option[Player] =
+      currentWorld.players.find(_.id == id)
+
     override def paintComponent(g: Graphics2D): Unit =
-      val world = currentWorld
-      val playerOpt = world.players.find(_.id == playerId)
-      val (offsetX, offsetY) = playerOpt
+      val (offsetX, offsetY) = getPlayer(playerId)
         .map(p => (p.x - size.width / 2.0, p.y - size.height / 2.0))
         .getOrElse((0.0, 0.0))
-      AgarViewUtils.drawWorld(g, world, offsetX, offsetY)
+      AgarViewUtils.drawWorld(g, currentWorld, offsetX, offsetY)
 
     reactions += { case e: event.MouseMoved =>
       val mousePos = e.point
-      currentWorld.players.find(_.id == playerId) match
+      getPlayer(playerId) match
         case Some(Player(_, _, _, _, None)) =>
           val dx = (mousePos.x - size.width / 2) * 0.01
           val dy = (mousePos.y - size.height / 2) * 0.01

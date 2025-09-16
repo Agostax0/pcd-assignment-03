@@ -1,6 +1,5 @@
 package it.unibo.agar.view
 
-import it.unibo.agar.Utils.NamePrefix
 import it.unibo.agar.model.Entity.World
 
 import java.awt.Color
@@ -13,14 +12,13 @@ object AgarViewUtils:
   private val playerLabelOffsetY = 0
   private val playerInnerOffset = 2
   private val playerInnerBorder = 4
-  private val playerPalette: Array[Color] =
-    Array(Color.blue, Color.orange, Color.cyan, Color.pink, Color.yellow, Color.red, Color.green, Color.lightGray)
 
-  private def playerColor(id: String): Color = id match
-    case pid if pid.startsWith(NamePrefix.Player.toString) =>
-      val idx = pid.stripPrefix(NamePrefix.Player.toString).toIntOption.getOrElse(0)
-      playerPalette(idx % playerPalette.length)
-    case _ => Color.gray
+  private def playerColor(id: String): Color =
+    val rand = new scala.util.Random(id.toInt)
+    val r = rand.nextInt(256)
+    val g = rand.nextInt(256)
+    val b = rand.nextInt(256)
+    new Color(r, g, b)
 
   def drawWorld(
       g: Graphics2D,
