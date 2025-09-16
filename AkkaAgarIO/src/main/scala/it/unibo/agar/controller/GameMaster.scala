@@ -72,8 +72,10 @@ object GameMaster:
 
             case UnregisterPlayer(id) =>
               ctx.log.info(s"Player $id unregistered")
+              val newWorld = world.removePlayerById(id)
+              observers.foreach(_ ! newWorld)
               loop(
-                world.removePlayerById(id),
+                newWorld,
                 directions - id,
                 observers,
                 playerRefs - id
