@@ -15,6 +15,7 @@ object GameMaster:
   sealed trait Command extends Message
   case object Tick extends Command
   case class RegisterPlayer(player: Player, ref: ActorRef[PlayerActor.Command]) extends Command
+  case class UnregisterPlayer(id: String) extends Command
   case class MovePlayer(id: String, dir: Direction) extends Command
   case class RegisterObserver(observer: ActorRef[World]) extends Command
 
@@ -53,6 +54,15 @@ object GameMaster:
                 directions,
                 observers,
                 playerRefs + (player.id -> ref)
+              )
+
+            case UnregisterPlayer(id) =>
+              ctx.log.info(s"Player $id unregistered")
+              loop(
+                world.removePlayerById(id),
+                directions - id,
+                observers,
+                playerRefs - id
               )
 
             case RegisterObserver(observer) =>

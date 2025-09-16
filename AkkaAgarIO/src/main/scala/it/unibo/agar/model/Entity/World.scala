@@ -16,6 +16,9 @@ case class World(
   def updatePlayer(player: Player): World =
     copy(players = players.map(p => if (p.id == player.id) player else p))
 
+  def removePlayerById(id: String): World =
+    copy(players = players.filterNot(_.id == id))
+
   def removePlayers(ids: Seq[Player]): World =
     copy(players = players.filterNot(p => ids.map(_.id).contains(p.id)))
 

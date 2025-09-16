@@ -13,7 +13,8 @@ import scala.swing.*
 class LocalView(
     anchor: Anchor,
     playerId: String,
-    movePlayerCommand: ActorRef[GameMaster.MovePlayer]
+    movePlayerCommand: ActorRef[GameMaster.MovePlayer],
+    onClose: () => Unit
 ) extends MainFrame
     with WorldUpdatable:
   title = s"Agar.io - Local View ($playerId)"
@@ -50,3 +51,11 @@ class LocalView(
           repaint()
         case _ => ()
     }
+
+  peer.setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE)
+  peer.addWindowListener(new java.awt.event.WindowAdapter {
+    override def windowClosing(e: java.awt.event.WindowEvent): Unit = {
+      onClose()
+      peer.dispose()
+    }
+  })

@@ -15,7 +15,7 @@ object ClientMain extends App:
   case class Connected(remoteLobby: ActorRef[Lobby.Command]) extends ConnectionMessage
   case class ConnectionFailed(ex: Throwable) extends ConnectionMessage
 
-  val name = "agario-client"
+  val name = "agario"
   val port = 0 // use 0 for a random available port
   private val config = ConfigFactory
     .parseString(s"""akka.remote.artery.canonical.port=$port""")
@@ -49,7 +49,7 @@ object ClientMain extends App:
         Behaviors.stopped
 
       case Initialize(remoteLobby, remoteGameMaster) =>
-        val clientHandler = ctx.spawn(ClientHandlerActor(remoteGameMaster), "client-handler")
+        val clientHandler = ctx.spawn(ClientHandlerActor(remoteLobby, remoteGameMaster), "client-handler")
         remoteLobby ! Lobby.JoinRequest(clientHandler)
         Behaviors.same
     }
