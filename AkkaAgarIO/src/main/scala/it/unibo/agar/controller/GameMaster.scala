@@ -6,21 +6,24 @@ import akka.actor.typed.scaladsl.Behaviors
 import it.unibo.agar.Message
 import it.unibo.agar.model.Direction
 import it.unibo.agar.model.EatingManager
+import it.unibo.agar.model.GameInitializer
 import it.unibo.agar.model.Entity.Player
 import it.unibo.agar.model.Entity.World
 
 import scala.concurrent.duration.*
+import scala.util.Random
 
 object GameMaster:
   sealed trait Command extends Message
   private case object Tick extends Command
-  case class RegisterPlayer(player: Player, ref: ActorRef[PlayerActor.Command]) extends Command
+  case class RegisterPlayer(replyTo: ActorRef[ClientHandlerActor.Command]) extends Command
   case class UnregisterPlayer(id: String) extends Command
   case class MovePlayer(id: String, dir: Direction) extends Command
   case class RegisterObserver(observer: ActorRef[World]) extends Command
 
-  def apply(initialWorld: World): Behavior[Command] =
   val maxPlayers: Int = 100
+
+  def apply(initialWorld: World, boardWidth: Int, boardHeight: Int): Behavior[Command] =
     Behaviors.withTimers { timers =>
       Behaviors.setup { ctx =>
         timers.startTimerAtFixedRate(Tick, 30.millis)
@@ -48,13 +51,23 @@ object GameMaster:
             case MovePlayer(id, dir: Direction) =>
               loop(world, directions.updated(id, dir), observers, playerRefs)
 
-            case RegisterPlayer(player, ref) =>
+            case RegisterPlayer(replyTo) =>
+              val player =
+                GameInitializer.spawnPlayer(
+                  getFreeId(world.players.map(p => p.id.filter(_.isDigit).toInt).toSet),
+                  boardWidth,
+                  boardHeight
+                )
+              val playerRef = ctx.spawn(PlayerActor(player.id, ctx.self), player.id)
+
+              replyTo ! ClientHandlerActor.GameJoined(player)
+
               ctx.log.info(s"Player ${player.id} registered " + ctx.self)
               loop(
                 world.copy(players = world.players :+ player),
                 directions,
                 observers,
-                playerRefs + (player.id -> ref)
+                playerRefs + (player.id -> playerRef)
               )
 
             case UnregisterPlayer(id) =>

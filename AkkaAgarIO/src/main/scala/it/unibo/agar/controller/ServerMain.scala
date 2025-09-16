@@ -20,10 +20,10 @@ object ServerMain extends App:
   private def start = Behaviors.setup[GameMaster.Command] { ctx =>
     val singletonManager = ClusterSingleton(ctx.system)
     val gameMaster = singletonManager.init(
-      SingletonActor(GameMaster(world), "game-master")
+      SingletonActor(GameMaster(world, width, height), "game-master")
     )
 
-    val lobby = ctx.spawn(Lobby(gameMaster, width, height), "lobby")
+    val lobby = ctx.spawn(Lobby(gameMaster), "lobby")
 
     if ctx.system.address.host.isDefined then
       val gv = new GlobalView(SE)

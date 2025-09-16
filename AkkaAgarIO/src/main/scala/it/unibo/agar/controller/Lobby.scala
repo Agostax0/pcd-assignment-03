@@ -4,18 +4,15 @@ import akka.actor.typed.scaladsl.Behaviors
 import akka.actor.typed.ActorRef
 import akka.actor.typed.Behavior
 import it.unibo.agar.Message
-import it.unibo.agar.model.GameInitializer
-
-import scala.util.Random
 
 object Lobby:
   sealed trait Command extends Message
-  
+
   case class Connect(replyTo: ActorRef[ClientMain.ConnectionMessage]) extends Command
   case class JoinRequest(replyTo: ActorRef[ClientHandlerActor.Command]) extends Command
   case class LeaveRequest(playerId: String) extends Command
 
-  def apply(gameMaster: ActorRef[GameMaster.Command], boardWidth: Int, boardHeight: Int): Behavior[Command] =
+  def apply(gameMaster: ActorRef[GameMaster.Command]): Behavior[Command] =
     Behaviors.receive { (ctx, msg) =>
       msg match
         case Connect(replyTo) =>
@@ -23,13 +20,7 @@ object Lobby:
           Behaviors.same
 
         case JoinRequest(replyTo) =>
-          val player =
-            GameInitializer.spawnPlayer(Random.nextInt(100).toString, boardWidth, boardHeight)
-          val playerRef = ctx.spawn(PlayerActor(player.id, gameMaster), player.id)
-
-          gameMaster ! GameMaster.RegisterPlayer(player, playerRef)
-          replyTo ! ClientHandlerActor.GameJoined(player)
-
+          gameMaster ! GameMaster.RegisterPlayer(replyTo)
           Behaviors.same
 
         case LeaveRequest(playerId) =>
