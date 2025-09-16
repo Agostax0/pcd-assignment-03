@@ -20,6 +20,7 @@ object GameMaster:
   case class RegisterObserver(observer: ActorRef[World]) extends Command
 
   def apply(initialWorld: World): Behavior[Command] =
+  val maxPlayers: Int = 100
     Behaviors.withTimers { timers =>
       Behaviors.setup { ctx =>
         timers.startTimerAtFixedRate(Tick, 30.millis)
@@ -75,6 +76,14 @@ object GameMaster:
     }
 
   private val speed = 10.0
+
+  private def getFreeId(players: Set[Int]): String =
+    (1 to maxPlayers)
+      .find(i => !players.contains(i))
+      .getOrElse {
+        throw new IllegalStateException("Max players reached")
+      }
+      .toString
 
   private def updatePlayerPosition(world: World, player: Player, dx: Double, dy: Double): Player =
     val newX = (player.x + dx * speed).max(0).min(world.width)
