@@ -38,7 +38,7 @@ object ClientHandlerActor:
 
         case AskToLeave =>
           remoteLobby ! Lobby.LeaveRequest(playerId =
-            player.map(_.id).getOrElse(throw new IllegalStateException("Not initialized player")
+            player.map(_.id).getOrElse(throw new IllegalStateException("Not initialized player"))
           )
           Behaviors.stopped
       }
