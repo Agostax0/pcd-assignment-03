@@ -33,7 +33,7 @@ object ClientHandlerActor:
 
           localView.open()
           val playerObs = ctx.spawn(ObserverActor(localView), "player-local-obs")
-          remoteGameMaster ! GameMaster.RegisterObserver(playerObs)
+          remoteGameMaster ! GameMaster.RegisterObserver(playerObs, p.id)
           Behaviors.same
 
         case AskToLeave =>

@@ -16,10 +16,12 @@ import scala.util.Random
 object GameMaster:
   sealed trait Command extends Message
   private case object Tick extends Command
+  case class MovePlayer(id: String, dir: Direction) extends Command
+
   case class RegisterPlayer(replyTo: ActorRef[ClientHandlerActor.Command]) extends Command
   case class UnregisterPlayer(id: String) extends Command
-  case class MovePlayer(id: String, dir: Direction) extends Command
-  case class RegisterObserver(observer: ActorRef[World]) extends Command
+
+  case class RegisterObserver(observer: ActorRef[World], id: String = "server") extends Command
 
   val maxPlayers: Int = 100
 
@@ -31,7 +33,7 @@ object GameMaster:
         def loop(
             world: World,
             directions: Map[String, Direction],
-            observers: Set[ActorRef[World]],
+            observers: Map[String, ActorRef[World]],
             playerRefs: Map[String, ActorRef[PlayerActor.Command]]
         ): Behavior[Command] =
           Behaviors.receiveMessage {
@@ -45,7 +47,7 @@ object GameMaster:
                     updateWorldAfterMovement(w, updatedPlayer)
                   case None => w
               }
-              observers.foreach(_ ! newWorld)
+              observers.values.foreach(_ ! newWorld)
               loop(newWorld, directions, observers, playerRefs)
 
             case MovePlayer(id, dir: Direction) =>
@@ -73,20 +75,20 @@ object GameMaster:
             case UnregisterPlayer(id) =>
               ctx.log.info(s"Player $id unregistered")
               val newWorld = world.removePlayerById(id)
-              observers.foreach(_ ! newWorld)
+              observers.values.foreach(_ ! newWorld)
               loop(
                 newWorld,
                 directions - id,
-                observers,
+                observers - id,
                 playerRefs - id
               )
 
-            case RegisterObserver(observer) =>
+            case RegisterObserver(observer, id) =>
               observer ! world
-              loop(world, directions, observers + observer, playerRefs)
+              loop(world, directions, observers ++ Map(id -> observer), playerRefs)
           }
 
-        loop(initialWorld, Map.empty, Set.empty, Map.empty)
+        loop(initialWorld, Map.empty, Map.empty, Map.empty)
       }
     }
 
