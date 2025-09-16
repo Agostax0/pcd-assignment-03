@@ -74,6 +74,7 @@ object GameMaster:
 
             case UnregisterPlayer(id) =>
               ctx.log.info(s"Player $id unregistered")
+              ctx.stop(playerRefs.getOrElse(id, throw new IllegalStateException(s"PlayerRef non trovato per id: $id")))
               val newWorld = world.removePlayerById(id)
               observers.values.foreach(_ ! newWorld)
               loop(
