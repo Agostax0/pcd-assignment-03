@@ -32,14 +32,13 @@ object ClientMain extends App:
     val classicSelection = ctx.system.classicSystem.actorSelection(serverPath)
     val futureRef = classicSelection.resolveOne(3.seconds)
 
-    futureRef.onComplete {
+    futureRef.onComplete:
       case Success(ref) =>
         ctx.self ! Connected(ref.toTyped[Lobby.Command])
       case Failure(ex) =>
         ctx.self ! ConnectionFailed(ex)
-    }
 
-    Behaviors.receiveMessage {
+    Behaviors.receiveMessage:
       case Connected(remoteLobby) =>
         remoteLobby ! Lobby.Connect(ctx.self)
         Behaviors.same
@@ -52,7 +51,6 @@ object ClientMain extends App:
         val clientHandler = ctx.spawn(ClientHandlerActor(remoteLobby, remoteGameMaster), "client-handler")
         remoteLobby ! Lobby.JoinRequest(clientHandler)
         Behaviors.same
-    }
   }
 
   ActorSystem[ConnectionMessage](start, name, config)

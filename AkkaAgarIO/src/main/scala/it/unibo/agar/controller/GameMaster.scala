@@ -13,7 +13,7 @@ import scala.concurrent.duration.*
 
 object GameMaster:
   sealed trait Command extends Message
-  case object Tick extends Command
+  private case object Tick extends Command
   case class RegisterPlayer(player: Player, ref: ActorRef[PlayerActor.Command]) extends Command
   case class UnregisterPlayer(id: String) extends Command
   case class MovePlayer(id: String, dir: Direction) extends Command
