@@ -22,7 +22,13 @@ object ClientHandlerActor:
         case GameJoined(p) =>
           player = Option(p)
           val localView = player match
-            case Some(pl) => new LocalView(SW, pl.id, remoteGameMaster, onClose = () => ctx.self ! AskToLeave)
+            case Some(pl) =>
+              new LocalView(
+                SW,
+                pl.id,
+                onPlayerMove = dir => remoteGameMaster ! GameMaster.MovePlayer(pl.id, dir),
+                onClose = () => ctx.self ! AskToLeave
+              )
             case None => throw new IllegalStateException("Not initialized player")
 
           localView.open()

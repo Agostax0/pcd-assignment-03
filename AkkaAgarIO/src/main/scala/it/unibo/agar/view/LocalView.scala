@@ -1,10 +1,8 @@
 package it.unibo.agar.view
 
-import akka.actor.typed.ActorRef
 import it.unibo.agar.Utils.*
 import it.unibo.agar.model.Entity.Player
 import it.unibo.agar.model.Entity.World
-import it.unibo.agar.controller.GameMaster
 import it.unibo.agar.model.Direction
 
 import java.awt.Graphics2D
@@ -13,7 +11,7 @@ import scala.swing.*
 class LocalView(
     anchor: Anchor,
     playerId: String,
-    movePlayerCommand: ActorRef[GameMaster.MovePlayer],
+    onPlayerMove: Direction => Unit,
     onClose: () => Unit
 ) extends MainFrame
     with WorldUpdatable:
@@ -46,8 +44,7 @@ class LocalView(
         case Some(Player(_, _, _, _, None)) =>
           val dx = (mousePos.x - size.width / 2) * 0.01
           val dy = (mousePos.y - size.height / 2) * 0.01
-          val dir = Direction(dx, dy)
-          movePlayerCommand ! GameMaster.MovePlayer(playerId, dir)
+          onPlayerMove(Direction(dx, dy))
           repaint()
         case _ => ()
     }
