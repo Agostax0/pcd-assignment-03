@@ -1,15 +1,17 @@
 package it.unibo.agar.view;
 
-import it.unibo.agar.model.GameStateManager;
-import it.unibo.agar.model.Player;
-import it.unibo.agar.model.RemoteGameStateManager;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.rmi.RemoteException;
 import java.util.Optional;
+
+import javax.swing.JFrame;
+
+import it.unibo.agar.model.Player;
+import it.unibo.agar.model.remote.RemoteGameStateManager;
 
 public class LocalView extends JFrame {
     private static final double SENSITIVITY = 2;

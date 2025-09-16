@@ -1,17 +1,17 @@
 package it.unibo.agar;
 
-import it.unibo.agar.model.*;
-import it.unibo.agar.view.JFrameRepaintable;
-import it.unibo.agar.view.LocalView;
-
-import javax.swing.*;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import javax.swing.SwingUtilities;
+
 import static it.unibo.agar.RunServerSide.GAME_TICK_MS;
+import it.unibo.agar.model.remote.*;
+import it.unibo.agar.view.JFrameRepaintable;
+import it.unibo.agar.view.LocalView;
 
 public class RunClientSide {
 
@@ -40,9 +40,7 @@ public class RunClientSide {
             manager.addListener(new RemoteGameStateListener() {
                 @Override
                 public void setRemoteGameState(RemoteGameStateManager remoteGameStateManager) throws RemoteException {
-                    System.out.println("[Client]: Update");
                     localViewP2.setRemoteGameStateManager(remoteGameStateManager);
-
                 }
             });
 

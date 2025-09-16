@@ -1,8 +1,12 @@
-package it.unibo.agar.model;
+package it.unibo.agar.model.remote;
 
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.List;
+
+import it.unibo.agar.model.DefaultGameStateManager;
+import it.unibo.agar.model.GameStateManager;
+import it.unibo.agar.model.World;
 
 public class RemoteGameStateManagerDelegate implements RemoteGameStateManager {
     private final List<RemoteGameStateListener> listeners = new ArrayList<>();

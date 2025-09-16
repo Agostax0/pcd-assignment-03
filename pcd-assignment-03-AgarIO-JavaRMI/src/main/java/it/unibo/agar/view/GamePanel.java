@@ -1,14 +1,15 @@
 package it.unibo.agar.view;
 
-import it.unibo.agar.model.GameStateManager;
-import it.unibo.agar.model.Player;
-import it.unibo.agar.model.RemoteGameStateManager;
-import it.unibo.agar.model.World;
-
-import javax.swing.*;
-import java.awt.*;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.rmi.RemoteException;
 import java.util.Optional;
+
+import javax.swing.JPanel;
+
+import it.unibo.agar.model.Player;
+import it.unibo.agar.model.World;
+import it.unibo.agar.model.remote.RemoteGameStateManager;
 
 public class GamePanel extends JPanel {
 

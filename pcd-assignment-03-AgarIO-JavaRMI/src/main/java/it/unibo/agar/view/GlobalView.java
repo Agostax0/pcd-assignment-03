@@ -1,10 +1,11 @@
 package it.unibo.agar.view;
 
-import it.unibo.agar.model.GameStateManager;
-import it.unibo.agar.model.RemoteGameStateManager;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
 
-import javax.swing.*;
-import java.awt.*;
+import javax.swing.JFrame;
+
+import it.unibo.agar.model.remote.RemoteGameStateManager;
 
 public class GlobalView extends JFrame {
 

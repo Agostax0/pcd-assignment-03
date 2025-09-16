@@ -1,11 +1,12 @@
 package it.unibo.agar.view;
 
+import java.awt.Color;
+import java.awt.Graphics2D;
+
 import it.unibo.agar.model.Entity;
 import it.unibo.agar.model.Food;
 import it.unibo.agar.model.Player;
 import it.unibo.agar.model.World;
-
-import java.awt.*;
 
 public class AgarViewUtils {
 
