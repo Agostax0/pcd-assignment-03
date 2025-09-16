@@ -1,6 +1,6 @@
 package it.unibo.agar.view
 
-import it.unibo.agar.Utils.*
+import it.unibo.agar.utils.*
 import it.unibo.agar.model.Entity.Player
 import it.unibo.agar.model.Entity.World
 import it.unibo.agar.model.Direction

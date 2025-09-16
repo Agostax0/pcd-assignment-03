@@ -1,6 +1,6 @@
 package it.unibo.agar.view
 
-import it.unibo.agar.Utils.Anchor
+import it.unibo.agar.utils.Anchor
 import it.unibo.agar.model.Entity.World
 
 import java.awt.Graphics2D

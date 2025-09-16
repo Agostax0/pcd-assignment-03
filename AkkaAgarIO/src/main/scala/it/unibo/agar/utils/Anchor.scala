@@ -1,4 +1,4 @@
-package it.unibo.agar.Utils
+package it.unibo.agar.utils
 
 import java.awt.Toolkit
 import scala.swing.{Dimension, Point}

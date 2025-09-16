@@ -1,4 +1,4 @@
-package it.unibo.agar.Utils
+package it.unibo.agar.utils
 
 import akka.actor.typed.{ActorSystem, Behavior}
 import com.typesafe.config.ConfigFactory

@@ -4,7 +4,7 @@ import akka.actor.typed.ActorSystem
 import akka.actor.typed.scaladsl.Behaviors
 import akka.cluster.typed.ClusterSingleton
 import akka.cluster.typed.SingletonActor
-import it.unibo.agar.Utils.Anchor.SE
+import it.unibo.agar.utils.Anchor.SE
 import it.unibo.agar.model.Entity.World
 import it.unibo.agar.model.GameInitializer
 import it.unibo.agar.view.GlobalView

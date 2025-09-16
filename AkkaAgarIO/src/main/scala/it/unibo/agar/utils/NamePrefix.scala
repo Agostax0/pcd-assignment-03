@@ -1,4 +1,4 @@
-package it.unibo.agar.Utils
+package it.unibo.agar.utils
 
 enum NamePrefix(val label: String):
   case Player extends NamePrefix("player-")
