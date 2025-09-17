@@ -7,6 +7,7 @@ import it.unibo.agar.Message
 import it.unibo.agar.model.Direction
 import it.unibo.agar.model.EatingManager
 import it.unibo.agar.model.GameInitializer
+import it.unibo.agar.model.Entity.Food
 import it.unibo.agar.model.Entity.Player
 import it.unibo.agar.model.Entity.World
 
@@ -21,11 +22,19 @@ object GameMaster:
   case class RegisterPlayer(replyTo: ActorRef[ClientHandlerActor.Command]) extends Command
   case class UnregisterPlayer(id: String) extends Command
 
+  case class SpawnFood(food: Food) extends Command
+
   case class RegisterObserver(observer: ActorRef[World], id: String = "server") extends Command
 
-  val maxPlayers: Int = 100
+  private val maxPlayers: Int = 100
+  private val maxFood: Int = 100
 
-  def apply(initialWorld: World, boardWidth: Int, boardHeight: Int): Behavior[Command] =
+  def apply(
+      initialWorld: World,
+      foodHandler: ActorRef[FoodHandler.Command],
+      boardWidth: Int,
+      boardHeight: Int
+  ): Behavior[Command] =
     Behaviors.withTimers { timers =>
       Behaviors.setup { ctx =>
         timers.startTimerAtFixedRate(Tick, 30.millis)
@@ -39,6 +48,8 @@ object GameMaster:
           Behaviors.receiveMessage {
             case Tick =>
               playerRefs.values.foreach(_ ! PlayerActor.Compute(world))
+
+              if world.foods.size < maxFood then foodHandler ! FoodHandler.GenerateFood(ctx.self)
 
               val newWorld = directions.foldLeft(world) { case (w, (id, dir)) =>
                 w.playerById(id) match
@@ -83,6 +94,12 @@ object GameMaster:
                 observers - id,
                 playerRefs - id
               )
+
+            case SpawnFood(food) =>
+              ctx.log.info(s"Spawning food ${food.id}")
+              val newWorld = world.copy(foods = world.foods :+ food)
+              observers.values.foreach(_ ! newWorld)
+              loop(newWorld, directions, observers, playerRefs)
 
             case RegisterObserver(observer, id) =>
               observer ! world
