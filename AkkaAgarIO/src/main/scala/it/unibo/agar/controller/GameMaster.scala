@@ -60,6 +60,7 @@ object GameMaster:
                 observers.values.foreach(_ ! newWorld)
 
                 playerRefs.values.foreach(_ ! PlayerActor.GameOver(winner.id))
+                playerRefs.keys.foreach(ctx.self ! UnregisterPlayer(_))
 
                 loop(newWorld, Map.empty, observers, Map.empty)
               else
