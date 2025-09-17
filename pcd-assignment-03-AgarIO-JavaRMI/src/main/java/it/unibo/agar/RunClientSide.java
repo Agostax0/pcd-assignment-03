@@ -1,5 +1,7 @@
 package it.unibo.agar;
 
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -35,7 +37,6 @@ public class RunClientSide {
                 }
             }, 0, GAME_TICK_MS);
 
-
             manager.addListener(new RemoteGameStateListener() {
                 @Override
                 public void setRemoteGameState(RemoteGameStateManager remoteGameStateManager) throws RemoteException {
@@ -44,6 +45,7 @@ public class RunClientSide {
 
                 @Override
                 public void gameOver(String winningPlayerId) throws RemoteException {
+
                     manager.removeListener(this);
 
                     System.out.println("Winner is " + winningPlayerId);
