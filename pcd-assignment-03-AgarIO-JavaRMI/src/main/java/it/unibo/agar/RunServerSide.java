@@ -1,20 +1,18 @@
 package it.unibo.agar;
 
-import it.unibo.agar.model.*;
-import it.unibo.agar.view.GlobalView;
-import it.unibo.agar.view.JFrameRepaintable;
-
-import javax.swing.*;
 import java.rmi.AlreadyBoundException;
-import java.rmi.NoSuchObjectException;
-import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Timer;
 import java.util.TimerTask;
+
+import javax.swing.SwingUtilities;
+
+import it.unibo.agar.model.*;
+import it.unibo.agar.model.remote.*;
+
 
 public class RunServerSide {
     private static final int WORLD_WIDTH = 1000;

@@ -1,7 +1,9 @@
-package it.unibo.agar.model;
+package it.unibo.agar.model.remote;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
+
+import it.unibo.agar.model.World;
 
 public interface RemoteGameStateManager extends Remote {
     World getWorld() throws RemoteException;

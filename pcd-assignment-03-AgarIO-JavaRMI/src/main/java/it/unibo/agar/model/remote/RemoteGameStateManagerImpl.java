@@ -1,6 +1,9 @@
-package it.unibo.agar.model;
+package it.unibo.agar.model.remote;
 
 import java.rmi.RemoteException;
+
+import it.unibo.agar.model.GameStateManager;
+import it.unibo.agar.model.World;
 
 public class RemoteGameStateManagerImpl extends RemoteGameStateManagerDelegate implements GameStateManager {
 

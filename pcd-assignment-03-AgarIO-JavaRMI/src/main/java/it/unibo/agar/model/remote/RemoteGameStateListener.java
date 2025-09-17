@@ -1,4 +1,4 @@
-package it.unibo.agar.model;
+package it.unibo.agar.model.remote;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
