@@ -12,6 +12,7 @@ import javax.swing.SwingUtilities;
 
 import it.unibo.agar.model.*;
 import it.unibo.agar.model.remote.*;
+import it.unibo.agar.view.*;
 
 
 public class RunServerSide {
