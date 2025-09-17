@@ -42,6 +42,13 @@ public class RunClientSide {
                 public void setRemoteGameState(RemoteGameStateManager remoteGameStateManager) throws RemoteException {
                     localViewP2.setRemoteGameStateManager(remoteGameStateManager);
                 }
+
+                @Override
+                public void gameOver(String winningPlayerId) throws RemoteException {
+                    manager.removeListener(this);
+
+                    System.out.println("Winner is " + winningPlayerId);
+                }
             });
 
         } catch (RemoteException | NotBoundException e) {
