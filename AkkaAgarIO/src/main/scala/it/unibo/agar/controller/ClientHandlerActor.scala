@@ -13,6 +13,8 @@ object ClientHandlerActor:
   sealed trait Command extends Message
   case class GameJoined(player: Player) extends Command
   private case object AskToLeave extends Command
+  case class GameOver(winnerId: String) extends Command
+  case object Disconnect extends Command
 
   def apply(remoteLobby: ActorRef[Lobby.Command], remoteGameMaster: ActorRef[GameMaster.Command]): Behavior[Command] =
     var player: Option[Player] = None
@@ -37,6 +39,20 @@ object ClientHandlerActor:
           Behaviors.same
 
         case AskToLeave =>
+          remoteLobby ! Lobby.LeaveRequest(playerId =
+            player.map(_.id).getOrElse(throw new IllegalStateException("Not initialized player"))
+          )
+          Behaviors.stopped
+
+        case GameOver(winnerId) =>
+          player match
+            case Some(pl) =>
+              if pl.id == winnerId then ctx.log.info("You win!")
+              else ctx.log.info(s"You lose! Winner is $winnerId")
+            case None => ctx.log.warn("Received GameOver but player is not initialized")
+          Behaviors.same
+
+        case Disconnect =>
           remoteLobby ! Lobby.LeaveRequest(playerId =
             player.map(_.id).getOrElse(throw new IllegalStateException("Not initialized player"))
           )

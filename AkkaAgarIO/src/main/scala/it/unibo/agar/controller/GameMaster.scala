@@ -28,6 +28,7 @@ object GameMaster:
 
   private val maxPlayers: Int = 100
   private val maxFood: Int = 100
+  private val winMassCondition: Int = 10000
 
   def apply(
       initialWorld: World,
@@ -51,15 +52,26 @@ object GameMaster:
 
               if world.foods.size < maxFood then foodHandler ! FoodHandler.GenerateFood(ctx.self)
 
-              val newWorld = directions.foldLeft(world) { case (w, (id, dir)) =>
-                w.playerById(id) match
-                  case Some(player) =>
-                    val updatedPlayer = updatePlayerPosition(w, player, dir.x, dir.y)
-                    updateWorldAfterMovement(w, updatedPlayer)
-                  case None => w
-              }
-              observers.values.foreach(_ ! newWorld)
-              loop(newWorld, directions, observers, playerRefs)
+              if world.players.exists(_.mass >= winMassCondition) then
+                val winner = world.players.maxBy(_.mass)
+                observers.values.foreach(_ ! world)
+                ctx.log.info(s"Game over! Winner: ${winner.id}")
+                val newWorld = World(boardWidth, boardHeight, Seq.empty, Seq.empty)
+                observers.values.foreach(_ ! newWorld)
+
+                playerRefs.values.foreach(_ ! PlayerActor.GameOver(winner.id))
+
+                loop(newWorld, Map.empty, observers, Map.empty)
+              else
+                val newWorld = directions.foldLeft(world) { case (w, (id, dir)) =>
+                  w.playerById(id) match
+                    case Some(player) =>
+                      val updatedPlayer = updatePlayerPosition(w, player, dir.x, dir.y)
+                      updateWorldAfterMovement(w, updatedPlayer)
+                    case None => w
+                }
+                observers.values.foreach(_ ! newWorld)
+                loop(newWorld, directions, observers, playerRefs)
 
             case MovePlayer(id, dir: Direction) =>
               loop(world, directions.updated(id, dir), observers, playerRefs)
@@ -71,7 +83,7 @@ object GameMaster:
                   boardWidth,
                   boardHeight
                 )
-              val playerRef = ctx.spawn(PlayerActor(player.id, ctx.self), player.id)
+              val playerRef = ctx.spawn(PlayerActor(player.id, replyTo, ctx.self), player.id)
 
               replyTo ! ClientHandlerActor.GameJoined(player)
 
