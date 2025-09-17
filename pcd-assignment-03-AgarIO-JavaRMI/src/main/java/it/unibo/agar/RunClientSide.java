@@ -23,8 +23,7 @@ public class RunClientSide {
             var registry = LocateRegistry.getRegistry(RunServerSide.DEFAULT_PORT);
 
             var manager = (RemoteGameStateManager) registry.lookup(RunServerSide.GAME_STATE_MANAGER_BINDING);
-
-            LocalView localViewP2 = new LocalView(manager, "p2");
+            LocalView localViewP2 = new LocalView(manager, (args[0] != null) ? args[0] : "p*");
             localViewP2.setVisible(true);
 
             final java.util.Timer timer = new Timer(true); // Use daemon thread for timer

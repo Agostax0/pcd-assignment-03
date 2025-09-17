@@ -53,12 +53,7 @@ public class RunServerSide {
         timer.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
-                // AI movement for p1, p3, p4
-                //AIMovement.moveAI("p1", remoteManager);
-                //AIMovement.moveAI("p3", remoteManager); // Assuming p3 is AI
-                //AIMovement.moveAI("p4", remoteManager); // Assuming p4 is AI
 
-                //System.out.println("[Server]: Tick");
                 remoteManager.tick();
                 SwingUtilities.invokeLater(repaintable::repaintView);
             }
