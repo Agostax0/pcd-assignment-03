@@ -1,0 +1,61 @@
+package it.unibo.agar.controller
+
+import akka.actor.typed.ActorRef
+import akka.actor.typed.Behavior
+import akka.actor.typed.scaladsl.Behaviors
+import it.unibo.agar.Message
+import it.unibo.agar.utils.Anchor.SW
+import it.unibo.agar.model.Entity.Player
+import it.unibo.agar.view.LocalView
+import it.unibo.agar.view.ObserverActor
+
+object ClientHandlerActor:
+  sealed trait Command extends Message
+  case class GameJoined(player: Player) extends Command
+  private case object AskToLeave extends Command
+  case class GameOver(winnerId: String) extends Command
+  case object Disconnect extends Command
+
+  def apply(remoteLobby: ActorRef[Lobby.Command], remoteGameMaster: ActorRef[GameMaster.Command]): Behavior[Command] =
+    var player: Option[Player] = None
+
+    Behaviors.setup { ctx =>
+      Behaviors.receiveMessage {
+        case GameJoined(p) =>
+          player = Option(p)
+          val localView = player match
+            case Some(pl) =>
+              new LocalView(
+                SW,
+                pl.id,
+                onPlayerMove = dir => remoteGameMaster ! GameMaster.MovePlayer(pl.id, dir),
+                onClose = () => ctx.self ! AskToLeave
+              )
+            case None => throw new IllegalStateException("Not initialized player")
+
+          localView.open()
+          val playerObs = ctx.spawn(ObserverActor(localView), "player-local-obs")
+          remoteGameMaster ! GameMaster.RegisterObserver(playerObs, p.id)
+          Behaviors.same
+
+        case AskToLeave =>
+          remoteLobby ! Lobby.LeaveRequest(playerId =
+            player.map(_.id).getOrElse(throw new IllegalStateException("Not initialized player"))
+          )
+          Behaviors.stopped
+
+        case GameOver(winnerId) =>
+          player match
+            case Some(pl) =>
+              if pl.id == winnerId then ctx.log.info("You win!")
+              else ctx.log.info(s"You lose! Winner is $winnerId")
+            case None => ctx.log.warn("Received GameOver but player is not initialized")
+          Behaviors.same
+
+        case Disconnect =>
+          remoteLobby ! Lobby.LeaveRequest(playerId =
+            player.map(_.id).getOrElse(throw new IllegalStateException("Not initialized player"))
+          )
+          Behaviors.stopped
+      }
+    }
