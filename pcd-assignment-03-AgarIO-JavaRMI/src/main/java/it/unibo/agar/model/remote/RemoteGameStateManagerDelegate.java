@@ -4,12 +4,13 @@ import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import it.unibo.agar.model.*;
 
 public class RemoteGameStateManagerDelegate implements RemoteGameStateManager {
-    private final List<RemoteGameStateListener> listeners = new ArrayList<>();
-
+    private final List<RemoteGameStateListener> listeners = new CopyOnWriteArrayList<>();
     public final GameStateManager manager;
 
     public RemoteGameStateManagerDelegate(final World initialWorld) {
@@ -52,12 +53,12 @@ public class RemoteGameStateManagerDelegate implements RemoteGameStateManager {
     }
 
     @Override
-    public void addListener(RemoteGameStateListener l) throws RemoteException {
+    public synchronized void addListener(RemoteGameStateListener l) throws RemoteException {
         listeners.add(l);
     }
 
     @Override
-    public void removeListener(RemoteGameStateListener l) throws RemoteException {
+    public synchronized void removeListener(RemoteGameStateListener l) throws RemoteException {
         listeners.remove(l);
     }
 }
